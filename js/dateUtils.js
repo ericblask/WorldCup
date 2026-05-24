@@ -1,6 +1,10 @@
-export function isMatchDate(matchDateString, targetDate) {
-    // Extract only the date part: "2026-06-24"
-    const matchDate = matchDateString.split('T')[0];
-    const targetDateString = targetDate.toISOString().split('T')[0];
-    return matchDate === targetDateString;
+export function getFormattedDate(dateObj) {
+    // Converts a Date object to "YYYY-MM-DD"
+    return dateObj.toISOString().split('T')[0];
+}
+
+export function extractDateFromField(dateString) {
+    // If your field is "2026-06-24 22:00:00", 
+    // this returns just the "2026-06-24" part.
+    return dateString.split(' ')[0];
 }
