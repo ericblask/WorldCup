@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav>
+        <a href="index.html">Dashboard</a> |
+        <a href="schedule.html">Full Schedule</a> |
+        <a href="yesterday.html">Yesterday</a> |
+        <a href="today.html">Today</a> |
+        <a href="tomorrow.html">Tomorrow</a>
+    </nav>
+    
+    <h2 id="page-title">Today's Games</h2>
+    <div id="games-container"></div>
+    
+    <script type="module" src="js/todaygames.js"></script> 
+</body>
+</html>
