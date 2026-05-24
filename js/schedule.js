@@ -1,49 +1,46 @@
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
-import { extractDateFromField } from "./dateUtils.js";
 
 const db = getDatabase();
 
-onValue(ref(db), (snapshot) => {
-    const data = snapshot.val();
-    const matchesByDate = data.matches || {}; 
-    const countries = data.countries || {};
+// Targeting the 'schedules' node directly as confirmed by your database structure
+onValue(ref(db, 'schedules'), (snapshot) => {
+    const schedules = snapshot.val();
     const container = document.getElementById('schedule-container');
     
-    // Clear container
+    if (!schedules) {
+        console.error("No data found at path 'schedules'!");
+        return;
+    }
+
     container.innerHTML = ''; 
 
-    // 1. Get dates and sort them alphabetically (YYYY-MM-DD ensures chronological order)
-    const sortedDates = Object.keys(matchesByDate).sort();
+    // 1. Convert the object of matches into an array and sort by the 'date' field
+    const matchArray = Object.values(schedules);
+    matchArray.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // 2. Loop through sorted dates
-    sortedDates.forEach(dateKey => {
-        const dailyMatches = matchesByDate[dateKey];
-        
-        // Add a Date Header
-        container.innerHTML += `<div class="date-header"><h3>${dateKey}</h3></div>`;
-        
-        // 3. Loop through matches for this specific date
-        Object.values(dailyMatches).forEach(match => {
-            const home = countries[match.homeTeamId] || { name: 'TBD', flagUrl: '', shortName: 'TBD' };
-            const away = countries[match.awayTeamId] || { name: 'TBD', flagUrl: '', shortName: 'TBD' };
+    // 2. Loop through sorted matches
+    matchArray.forEach(match => {
+        // Extract time from the "YYYY-MM-DD HH:MM:SS" string
+        const datePart = match.date.split(' ')[0];
+        const timePart = match.date.split(' ')[1].substring(0, 5); // Gets "HH:MM"
 
-            container.innerHTML += `
-                <div class="match-row">
-                    <div class="team-left">
-                        <span class="team-name">${home.shortName}</span>
-                        <img src="${home.flagUrl}" alt="${home.name}" width="30">
-                    </div>
-                    
-                    <div class="match-info">
-                        <div class="time">${match.time || 'TBD'}</div>
-                    </div>
-
-                    <div class="team-right">
-                        <img src="${away.flagUrl}" alt="${away.name}" width="30">
-                        <span class="team-name">${away.shortName}</span>
-                    </div>
+        container.innerHTML += `
+            <div class="match-row">
+                <div class="team-left">
+                    <span class="team-name">${match.homeTeam}</span>
+                    <img src="${match.homeFlag}" alt="${match.homeTeam}" width="30">
                 </div>
-            `;
-        });
+                
+                <div class="match-info">
+                    <div class="date">${datePart}</div>
+                    <div class="time">${timePart}</div>
+                </div>
+
+                <div class="team-right">
+                    <img src="${match.awayFlag}" alt="${match.awayTeam}" width="30">
+                    <span class="team-name">${match.awayTeam}</span>
+                </div>
+            </div>
+        `;
     });
 });
