@@ -30,14 +30,15 @@ onValue(countriesRef, (snapshot) => {
 
     Object.keys(countries).forEach(key => {
         const country = countries[key];
-        const row = `
-            <tr>
-                <td><img src="${country.flagUrl}" alt="${country.name}" width="30"></td>
-                <td>${country.name}</td>
-                <td>${country.group}</td>
-                <td>${country.shortName}</td>
-            </tr>
+        const card = `
+            <div class="country-card">
+                <img src="${country.flagUrl}" alt="${country.name}">
+                <h3>${country.name}</h3>
+                <p>Group: ${country.group}</p>
+                <p>Code: ${country.shortName}</p>
+            </div>
         `;
-        tbody.innerHTML += row;
+        // Ensure your index.html has a <div id="countries-body"> instead of a <tbody>
+        document.getElementById('countries-body').innerHTML += card;
     });
 });
