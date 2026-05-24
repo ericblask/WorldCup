@@ -3,6 +3,13 @@
 <head>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
+<nav>
+        <a href="index.html">Dashboard</a> |
+        <a href="schedule.html">Full Schedule</a> |
+        <a href="today.html">Today</a> |
+    </nav>
+
 <body>
     <h1>World Cup Match Schedule</h1>
     <div id="schedule-container">
