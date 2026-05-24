@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <h1>World Cup Match Schedule</h1>
+    <div id="schedule-container">
+        </div>
+    <script type="module" src="js/schedule.js"></script>
+</body>
+</html>
