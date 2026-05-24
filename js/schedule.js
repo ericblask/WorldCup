@@ -3,35 +3,47 @@ import { extractDateFromField } from "./dateUtils.js";
 
 const db = getDatabase();
 
-// Targeting the 'matches' folder directly
-onValue(ref(db, 'matches'), (snapshot) => {
-    const matchesByDate = snapshot.val(); // This is the object containing all dates
-    const data = snapshot.val(); // Accessing global data if you need 'countries'
-    
-    // We need the 'countries' list too, so let's fetch the root instead
-    // to ensure we can look up flag URLs correctly.
-});
-
-// BETTER APPROACH: Fetch the root to get both matches and countries
 onValue(ref(db), (snapshot) => {
     const data = snapshot.val();
     const matchesByDate = data.matches || {}; 
     const countries = data.countries || {};
     const container = document.getElementById('schedule-container');
+    
+    // Clear container
     container.innerHTML = ''; 
 
-    // 1. Get the dates and sort them alphabetically (since YYYY-MM-DD sorts naturally)
+    // 1. Get dates and sort them alphabetically (YYYY-MM-DD ensures chronological order)
     const sortedDates = Object.keys(matchesByDate).sort();
 
-    // 2. Loop through the SORTED dates
+    // 2. Loop through sorted dates
     sortedDates.forEach(dateKey => {
         const dailyMatches = matchesByDate[dateKey];
         
-        // Optional: Add a date header row here!
+        // Add a Date Header
         container.innerHTML += `<div class="date-header"><h3>${dateKey}</h3></div>`;
         
+        // 3. Loop through matches for this specific date
         Object.values(dailyMatches).forEach(match => {
-            // ... (your existing match-row rendering code)
+            const home = countries[match.homeTeamId] || { name: 'TBD', flagUrl: '', shortName: 'TBD' };
+            const away = countries[match.awayTeamId] || { name: 'TBD', flagUrl: '', shortName: 'TBD' };
+
+            container.innerHTML += `
+                <div class="match-row">
+                    <div class="team-left">
+                        <span class="team-name">${home.shortName}</span>
+                        <img src="${home.flagUrl}" alt="${home.name}" width="30">
+                    </div>
+                    
+                    <div class="match-info">
+                        <div class="time">${match.time || 'TBD'}</div>
+                    </div>
+
+                    <div class="team-right">
+                        <img src="${away.flagUrl}" alt="${away.name}" width="30">
+                        <span class="team-name">${away.shortName}</span>
+                    </div>
+                </div>
+            `;
         });
     });
 });
