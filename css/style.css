@@ -52,3 +52,23 @@ header {
     color: #666;
     font-size: 0.9em;
 }
+
+.match-row {
+    display: flex;
+    justify-content: space-between; /* Pushes teams to edges, time to middle */
+    align-items: center;
+    background: white;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.team-left, .team-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 120px;
+}
+
+.team-right { justify-content: flex-end; }
