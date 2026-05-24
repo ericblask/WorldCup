@@ -12,36 +12,62 @@ const firebaseConfig = {
     appId: "1:1089995362453:web:976781ec8aaf63477c0b9c"
 };
 
-// 2. INITIALIZE FIREBASE
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 3. FETCH AND RENDER SCHEDULES
-onValue(ref(db, 'schedules'), (snapshot) => {
-    const schedules = snapshot.val();
+// 3. FETCH BOTH SCHEDULES AND RESULTS
+// Notice we are fetching ref(db) to get the root, which gives us both nodes!
+onValue(ref(db), (snapshot) => {
+    const data = snapshot.val();
     const container = document.getElementById('schedule-container');
     
-    if (!schedules) {
-        container.innerHTML = "<h3>Error: No data found at the 'schedules' path.</h3>";
+    if (!data || !data.schedules) {
+        container.innerHTML = "<h3>Error: No schedules data found.</h3>";
         return;
     }
 
-    // Clear the container
+    const schedules = data.schedules;
+    const results = data.results || {}; // Fallback to empty object if no results exist yet
+
     container.innerHTML = ''; 
 
-    // Convert the object of matches into an array and sort chronologically
-    const matchArray = Object.values(schedules);
+    // 4. Capture the match ID (the key, e.g. 537327) and put it inside the match object
+    const matchArray = Object.keys(schedules).map(key => {
+        return {
+            matchId: key, // Saving the key so we can look up the result
+            ...schedules[key]
+        };
+    });
+
+    // Sort chronologically
     matchArray.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // Loop through sorted matches and render HTML
+    // 5. Loop through sorted matches
     matchArray.forEach(match => {
-        // Extract date and time cleanly
         const datePart = match.date.split(' ')[0];
-        // Safely grab the time, falling back to 'TBD' if missing
         const timePart = match.date.split(' ')[1] ? match.date.split(' ')[1].substring(0, 5) : 'TBD';
 
+        // MERGE RESULTS: Look up the result using the matchId
+        const matchResult = results[match.matchId] || {};
+        const status = matchResult.status || 'Scheduled';
+        
+        // Determine the CSS class based on the status
+        let statusClass = '';
+        if (status === 'Finished') {
+            statusClass = 'status-finished';
+        } else if (status === 'In_Play' || status === 'Paused') {
+            statusClass = 'status-live';
+        }
+
+        // Bonus: If you store scores as 'homeScore' and 'awayScore' in your results node,
+        // this will display the score for live/finished games, and the time for future games!
+        const scoreDisplay = (status === 'Finished' || status === 'In_Play' || status === 'Paused') 
+            ? `<div class="score" style="font-size: 1.2em; font-weight: bold;">${matchResult.homeScore ?? '-'} : ${matchResult.awayScore ?? '-'}</div>` 
+            : `<div class="time">${timePart}</div>`;
+
+        // Inject the statusClass into the main row div
         container.innerHTML += `
-            <div class="match-row">
+            <div class="match-row ${statusClass}">
                 <div class="team-left">
                     <span class="team-name">${match.homeTeam}</span>
                     <img src="${match.homeFlag}" alt="${match.homeTeam}" width="30">
@@ -49,7 +75,7 @@ onValue(ref(db, 'schedules'), (snapshot) => {
                 
                 <div class="match-info">
                     <div class="date">${datePart}</div>
-                    <div class="time">${timePart}</div>
+                    ${scoreDisplay}
                 </div>
 
                 <div class="team-right">
