@@ -4,7 +4,7 @@ import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.
 // 1. YOUR PROJECT CONFIGURATION
 // Go to Firebase Console -> Project Settings -> General -> Your apps -> Firebase SDK snippet
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
+    apiKey: "AIzaSyCKV4Q_7dJ_fPk6WK4rQs8GiZRvCKhgpng",
     authDomain: "worldcup2026-5219e.firebaseapp.com",
     databaseURL: "https://worldcup2026-5219e-default-rtdb.firebaseio.com/",
     projectId: "worldcup2026-5219e",
