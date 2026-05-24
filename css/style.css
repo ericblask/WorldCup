@@ -72,3 +72,15 @@ header {
 }
 
 .team-right { justify-content: flex-end; }
+
+/* Light green background for finished matches */
+.match-row.status-finished {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+}
+
+/* Light blue background for live/paused matches */
+.match-row.status-live {
+    background-color: #cce5ff;
+    border: 1px solid #b8daff;
+}
