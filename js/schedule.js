@@ -1,31 +1,36 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
+import { extractDateFromField } from "./dateUtils.js";
 
-const firebaseConfig = { /* Paste your config here */ };
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+const db = getDatabase();
 
-// Fetch both matches and countries to map flags
 onValue(ref(db), (snapshot) => {
     const data = snapshot.val();
-    const matches = data.schedules; // Assuming this is your match list
-    const countries = data.countries;
+    const matches = Object.values(data.schedules || {});
+    const countries = data.countries; // Used for looking up flags
     const container = document.getElementById('schedule-container');
 
-    Object.values(matches).forEach(match => {
-        const home = countries[match.homeTeamId];
-        const away = countries[match.awayTeamId];
+    container.innerHTML = matches.map(match => {
+        // Find the team details based on the IDs in your match
+        const home = countries[match.homeTeamId] || { name: 'TBD', flagUrl: '', shortName: 'TBD' };
+        const away = countries[match.awayTeamId] || { name: 'TBD', flagUrl: '', shortName: 'TBD' };
 
-        container.innerHTML += `
+        return `
             <div class="match-row">
-                <div class="team">
-                    <img src="${home.flagUrl}" width="30"> ${home.shortName}
+                <div class="team-left">
+                    <span class="team-name">${home.shortName}</span>
+                    <img src="${home.flagUrl}" alt="${home.name}" width="30">
                 </div>
-                <div class="time">${match.date} - ${match.time}</div>
-                <div class="team">
-                    ${away.shortName} <img src="${away.flagUrl}" width="30">
+                
+                <div class="match-info">
+                    <div class="date">${extractDateFromField(match.date)}</div>
+                    <div class="time">${match.time || 'TBD'}</div>
+                </div>
+
+                <div class="team-right">
+                    <img src="${away.flagUrl}" alt="${away.name}" width="30">
+                    <span class="team-name">${away.shortName}</span>
                 </div>
             </div>
         `;
-    });
+    }).join('');
 });
