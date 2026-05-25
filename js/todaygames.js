@@ -23,8 +23,8 @@ onValue(ref(db), (snapshot) => {
     const data = snapshot.val();
     const container = document.getElementById('schedule-container');
     
-    if (!data || !data.recentschedules) {
-        container.innerHTML = "<h3>Error: No schedules data found.</h3>";
+if (!data || !data.recentschedule) { 
+        container.innerHTML = "<h3>Error: No recent schedule data found.</h3>";
         return;
     }
 
