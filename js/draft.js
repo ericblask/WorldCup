@@ -11,8 +11,10 @@ const firebaseConfig = {
     appId: "1:1089995362453:web:6cb7fb7f6666bad07c0b9c"
 };
 
-// 2. Initialize Firebase using the Compat syntax
-firebase.initializeApp(firebaseConfig);
+// 2. Initialize Firebase using the Compat syntax (Safely)
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.database();
 
 // 3. Reference the root of your database to get both 'countries' and 'families'
