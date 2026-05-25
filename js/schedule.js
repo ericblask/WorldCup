@@ -94,12 +94,17 @@ onValue(ref(db), (snapshot) => {
         // Safely grab the stage 
         const stageText = match.stage || '';
 
+        // Grab family names (defaults to empty string if not assigned)
+        const homeFamily = match.homeFamily || '';
+        const awayFamily = match.awayFamily || '';
+
         // Append HTML structure for the match row
         htmlOutput += `
             <div class="match-row ${statusClass}">
                 <div class="team-left">
                     <span class="team-name">${match.homeTeam}</span>
-                    <img src="${match.homeFlag}" alt="${match.homeTeam}" width="30">
+                    <img src="${match.homeFlag}" alt="${match.homeTeam}" class="team-flag">
+                    <span class="family-name" style="font-size: 0.85em; color: #555; margin-top: 5px;">${homeFamily}</span>
                 </div>
                 
                 <div class="match-info">
@@ -110,7 +115,8 @@ onValue(ref(db), (snapshot) => {
 
                 <div class="team-right">
                     <span class="team-name">${match.awayTeam}</span>
-                    <img src="${match.awayFlag}" alt="${match.awayTeam}" width="30">
+                    <img src="${match.awayFlag}" alt="${match.awayTeam}" class="team-flag">
+                    <span class="family-name" style="font-size: 0.85em; color: #555; margin-top: 5px;">${awayFamily}</span>
                 </div>
             </div>
         `;
