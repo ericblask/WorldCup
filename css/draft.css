@@ -80,3 +80,10 @@ select:focus {
     outline: none;
     border-color: #004b87;
 }
+
+/* Style for the active page link */
+.main-nav a.active {
+    font-weight: bold;
+    color: #004b87; /* Make this match your brand color */
+    text-decoration: underline;
+}
