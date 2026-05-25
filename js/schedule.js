@@ -39,18 +39,40 @@ onValue(ref(db), (snapshot) => {
     // Sort chronologically
     matchArray.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // UPDATE: Create an empty string to hold all the HTML we generate
+    // Create an empty string to hold all the HTML we generate
     let htmlOutput = ''; 
 
     // 5. Loop through sorted matches
     matchArray.forEach(match => {
-        // UPDATE: Fallback added to prevent .split() from crashing if 'date' is missing
-        const matchDate = match.date || 'TBD TBD';
-        const datePart = matchDate.split(' ')[0];
-        const timePart = matchDate.split(' ')[1] ? matchDate.split(' ')[1].substring(0, 5) : 'TBD';
+        // --- NEW: US Date and Time Formatting ---
+        const matchDateString = match.date || '';
+        let datePart = 'TBD';
+        let timePart = 'TBD';
 
-        // Safely grab the stage (fallback to empty string if missing)
-        const stageText = match.stage || '';
+        const parsedDate = new Date(matchDateString);
+        
+        // Check if it's a valid date object
+        if (!isNaN(parsedDate.getTime())) {
+            // US Date format (e.g., "Jun 11, 2026")
+            datePart = parsedDate.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            
+            // US 12-hour Time format (e.g., "3:00 PM")
+            timePart = parsedDate.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        } else {
+            // Fallback to original split if the date string is malformed
+            const parts = matchDateString.split(' ');
+            if (parts[0]) datePart = parts[0];
+            if (parts[1]) timePart = parts[1].substring(0, 5);
+        }
+        // ----------------------------------------
 
         // MERGE RESULTS
         const matchResult = results[match.matchId] || {};
@@ -64,12 +86,15 @@ onValue(ref(db), (snapshot) => {
             statusClass = 'status-live';
         }
 
-        // Score display
+        // Score display (showing formatted time for scheduled games)
         const scoreDisplay = (status === 'Finished' || status === 'In_Play' || status === 'Paused') 
             ? `<div class="score" style="font-size: 1.2em; font-weight: bold;">${matchResult.homeScore ?? '-'} : ${matchResult.awayScore ?? '-'}</div>` 
             : `<div class="time">${timePart}</div>`;
 
-        // UPDATE: Append to our string variable instead of the DOM
+        // Safely grab the stage 
+        const stageText = match.stage || '';
+
+        // Append HTML structure for the match row
         htmlOutput += `
             <div class="match-row ${statusClass}">
                 <div class="team-left">
@@ -91,6 +116,6 @@ onValue(ref(db), (snapshot) => {
         `;
     });
 
-    // UPDATE: Inject the fully built HTML string into the container all at once
+    // Inject the fully built HTML string into the container all at once
     container.innerHTML = htmlOutput;
 });
