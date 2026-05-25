@@ -9,7 +9,7 @@ const firebaseConfig = {
     projectId: "worldcup2026-5219e",
     storageBucket: "worldcup2026-5219e.appspot.com",
     messagingSenderId: "1089995362453",
-    appId: "1:1089995362453:web:976781ec8aaf63477c0b9c"
+    appId: "1:1089995362453:web:6cb7fb7f6666bad07c0b9c"
 };
 
 const app = initializeApp(firebaseConfig);
