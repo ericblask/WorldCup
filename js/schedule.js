@@ -27,6 +27,18 @@ onValue(ref(db), (snapshot) => {
 
     const schedules = data.schedules;
     const results = data.results || {}; 
+    const countries = data.countries || {}; // Added: fetch countries to map IDs
+    const drafts = data.draft || {};        // Added: fetch drafts for family assignments
+
+    // Helper function to find a family name by the country's string name
+    const getFamilyByName = (teamName) => {
+        for (const [id, country] of Object.entries(countries)) {
+            if (country.name === teamName) {
+                return drafts[id] ? drafts[id].family : '';
+            }
+        }
+        return ''; // Return empty string if no family is drafted
+    };
 
     // 4. Capture the match ID
     const matchArray = Object.keys(schedules).map(key => {
@@ -94,9 +106,9 @@ onValue(ref(db), (snapshot) => {
         // Safely grab the stage 
         const stageText = match.stage || '';
 
-        // Grab family names (defaults to empty string if not assigned)
-        const homeFamily = match.homeFamily || '';
-        const awayFamily = match.awayFamily || '';
+        // Grab family names using our helper function against the draft node
+        const homeFamily = getFamilyByName(match.homeTeam);
+        const awayFamily = getFamilyByName(match.awayTeam);
 
         // Append HTML structure for the match row
         htmlOutput += `
