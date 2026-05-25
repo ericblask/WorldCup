@@ -5,7 +5,7 @@ const navHTML = `
         <a href="index.html">Dashboard</a> |
         <a href="schedule.html">Full Schedule</a> |
         <a href="today.html">Today</a> |
-        <a href="draft.html">Draft</a>
+        <a href="standings.html">Standings</a>
     </nav>
 `;
 
