@@ -73,10 +73,12 @@ header {
 }
 
 .team-right { 
-    justify-content: flex-end; 
-    flex-direction: column; /* Stacks children vertically */
-    align-items: center;
-    gap: 10px;
+    justify-content: flex-end;
+}
+
+.team-flag {
+    width: 30px;
+    height: auto;           /* Maintains the aspect ratio of the flag */
 }
 
 /* Light green background for finished matches */
