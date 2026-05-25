@@ -10,33 +10,28 @@ const firebaseConfig = {
     storageBucket: "worldcup2026-5219e.appspot.com",
     messagingSenderId: "1089995362453",
     appId: "1:1089995362453:web:6cb7fb7f6666bad07c0b9c"
-
-    
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // 3. FETCH BOTH SCHEDULES AND RESULTS
-// Notice we are fetching ref(db) to get the root, which gives us both nodes!
 onValue(ref(db), (snapshot) => {
     const data = snapshot.val();
     const container = document.getElementById('schedule-container');
     
-if (!data || !data.recentschedule) { 
-        container.innerHTML = "<h3>Error: No recent schedule data found.</h3>";
+    if (!data || !data.recentschedule) {
+        container.innerHTML = "<h3>Error: No schedules data found.</h3>";
         return;
     }
 
     const schedules = data.recentschedule;
-    const results = data.results || {}; // Fallback to empty object if no results exist yet
+    const results = data.results || {}; 
 
-    container.innerHTML = ''; 
-
-    // 4. Capture the match ID (the key, e.g. 537327) and put it inside the match object
+    // 4. Capture the match ID
     const matchArray = Object.keys(schedules).map(key => {
         return {
-            matchId: key, // Saving the key so we can look up the result
+            matchId: key, 
             ...schedules[key]
         };
     });
@@ -44,16 +39,46 @@ if (!data || !data.recentschedule) {
     // Sort chronologically
     matchArray.sort((a, b) => new Date(a.date) - new Date(b.date));
 
+    // Create an empty string to hold all the HTML we generate
+    let htmlOutput = ''; 
+
     // 5. Loop through sorted matches
     matchArray.forEach(match => {
-        const datePart = match.date.split(' ')[0];
-        const timePart = match.date.split(' ')[1] ? match.date.split(' ')[1].substring(0, 5) : 'TBD';
+        // --- NEW: US Date and Time Formatting ---
+        const matchDateString = match.date || '';
+        let datePart = 'TBD';
+        let timePart = 'TBD';
 
-        // MERGE RESULTS: Look up the result using the matchId
+        const parsedDate = new Date(matchDateString);
+        
+        // Check if it's a valid date object
+        if (!isNaN(parsedDate.getTime())) {
+            // US Date format (e.g., "Jun 11, 2026")
+            datePart = parsedDate.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            
+            // US 12-hour Time format (e.g., "3:00 PM")
+            timePart = parsedDate.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        } else {
+            // Fallback to original split if the date string is malformed
+            const parts = matchDateString.split(' ');
+            if (parts[0]) datePart = parts[0];
+            if (parts[1]) timePart = parts[1].substring(0, 5);
+        }
+        // ----------------------------------------
+
+        // MERGE RESULTS
         const matchResult = results[match.matchId] || {};
         const status = matchResult.status || 'Scheduled';
         
-        // Determine the CSS class based on the status
+        // Determine the CSS class
         let statusClass = '';
         if (status === 'Finished') {
             statusClass = 'status-finished';
@@ -61,14 +86,16 @@ if (!data || !data.recentschedule) {
             statusClass = 'status-live';
         }
 
-        // Bonus: If you store scores as 'homeScore' and 'awayScore' in your results node,
-        // this will display the score for live/finished games, and the time for future games!
+        // Score display (showing formatted time for scheduled games)
         const scoreDisplay = (status === 'Finished' || status === 'In_Play' || status === 'Paused') 
             ? `<div class="score" style="font-size: 1.2em; font-weight: bold;">${matchResult.homeScore ?? '-'} : ${matchResult.awayScore ?? '-'}</div>` 
             : `<div class="time">${timePart}</div>`;
 
-        // Inject the statusClass into the main row div
-        container.innerHTML += `
+        // Safely grab the stage 
+        const stageText = match.stage || '';
+
+        // Append HTML structure for the match row
+        htmlOutput += `
             <div class="match-row ${statusClass}">
                 <div class="team-left">
                     <span class="team-name">${match.homeTeam}</span>
@@ -76,6 +103,7 @@ if (!data || !data.recentschedule) {
                 </div>
                 
                 <div class="match-info">
+                    <div class="stage">${stageText}</div>
                     <div class="date">${datePart}</div>
                     ${scoreDisplay}
                 </div>
@@ -87,4 +115,7 @@ if (!data || !data.recentschedule) {
             </div>
         `;
     });
+
+    // Inject the fully built HTML string into the container all at once
+    container.innerHTML = htmlOutput;
 });
