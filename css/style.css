@@ -95,3 +95,10 @@ header {
     color: #555555; /* Adjust to match your theme */
     font-weight: 600; /* Optional: makes it stand out slightly */
 }
+
+/* Style for the active page link */
+.main-nav a.active {
+    font-weight: bold;
+    color: #004b87; /* Make this match your brand color */
+    text-decoration: underline;
+}
