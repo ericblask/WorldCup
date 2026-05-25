@@ -25,11 +25,23 @@ function getFormattedDate(date) {
 }
 
 // Calculate Yesterday, Today, and Tomorrow based on the user's local timezone
-const now = new Date();
+//const now = new Date();
+//const yesterday = new Date(now);
+//yesterday.setDate(now.getDate() - 1);
+//const tomorrow = new Date(now);
+//tomorrow.setDate(now.getDate() + 1);
+// 1. Initialize 'now' with your specific test date.
+// Note: Adding T12:00:00 ensures timezone offsets don't accidentally push the date back to June 12.
+const now = new Date('2026-06-13T12:00:00'); 
+
+// 2. Calculate yesterday
 const yesterday = new Date(now);
 yesterday.setDate(now.getDate() - 1);
+
+// 3. Calculate tomorrow
 const tomorrow = new Date(now);
 tomorrow.setDate(now.getDate() + 1);
+
 
 // Store the valid date strings in an array for easy comparison
 const validDates = [
