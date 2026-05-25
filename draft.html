@@ -6,21 +6,20 @@
     <title>World Cup 2026 - Family Draft</title>
     <link rel="stylesheet" href="draft.css">
 </head>
-
-  <nav>
-        <a href="index.html">Dashboard</a> |
-        <a href="schedule.html">Full Schedule</a> |
-        <a href="today.html">Today</a> |
-        <a href="draft.html">Draft</a> |    
-    </nav>
-  
 <body>
+
+    <div id="nav-placeholder"></div>
 
     <h1>World Cup 2026 Family Draft</h1>
     <div id="draft-board" class="groups-container">
         <p style="text-align: center; width: 100%;">Loading draft board...</p>
     </div>
 
-    <script type="module" src="draft.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script src="nav.js"></script>
+
+    <script src="draft.js"></script>
 </body>
 </html>
