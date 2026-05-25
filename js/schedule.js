@@ -49,6 +49,9 @@ onValue(ref(db), (snapshot) => {
         const datePart = matchDate.split(' ')[0];
         const timePart = matchDate.split(' ')[1] ? matchDate.split(' ')[1].substring(0, 5) : 'TBD';
 
+        // Safely grab the stage (fallback to empty string if missing)
+        const stageText = match.stage || '';
+
         // MERGE RESULTS
         const matchResult = results[match.matchId] || {};
         const status = matchResult.status || 'Scheduled';
@@ -75,6 +78,7 @@ onValue(ref(db), (snapshot) => {
                 </div>
                 
                 <div class="match-info">
+                    <div class="stage">${stageText}</div>
                     <div class="date">${datePart}</div>
                     ${scoreDisplay}
                 </div>
