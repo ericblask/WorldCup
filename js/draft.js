@@ -1,4 +1,7 @@
-// draft.js
+console.log("0. THE SCRIPT IS ALIVE!");
+
+const firebaseConfig = {
+   // ... rest of your code
 
 // 1. YOUR FIREBASE CONFIG
 const firebaseConfig = {
