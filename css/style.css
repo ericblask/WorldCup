@@ -84,3 +84,14 @@ header {
     background-color: #cce5ff;
     border: 1px solid #b8daff;
 }
+
+
+/* Styling for the Group Stage / Knockout Round label */
+.stage {
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+    color: #555555; /* Adjust to match your theme */
+    font-weight: 600; /* Optional: makes it stand out slightly */
+}
