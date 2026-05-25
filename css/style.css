@@ -66,12 +66,18 @@ header {
 
 .team-left, .team-right {
     display: flex;
+    flex-direction: column; /* Stacks children vertically */
     align-items: center;
     gap: 10px;
     width: 120px;
 }
 
-.team-right { justify-content: flex-end; }
+.team-right { 
+    justify-content: flex-end; 
+    flex-direction: column; /* Stacks children vertically */
+    align-items: center;
+    gap: 10px;
+}
 
 /* Light green background for finished matches */
 .match-row.status-finished {
