@@ -110,3 +110,48 @@ header {
     color: #004b87; /* Make this match your brand color */
     text-decoration: underline;
 }
+
+/* --- Standings Table Styles --- */
+.standings-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+.standings-table th, 
+.standings-table td {
+    padding: 12px 15px;
+    text-align: center;
+    border-bottom: 1px solid #ddd;
+}
+
+.standings-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    color: #333;
+    text-transform: uppercase;
+    font-size: 0.9em;
+}
+
+.standings-table td.team-cell {
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.standings-table tbody tr:hover {
+    background-color: #f1f1f1;
+    transition: background 0.2s;
+}
+
+/* Ensure container fits nicely within your existing layout */
+#standings-container {
+    max-width: 1000px; 
+    margin: 0 auto; 
+    padding: 0 20px;
+}
