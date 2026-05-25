@@ -20,18 +20,25 @@ const db = firebase.database();
 // 3. Reference the root of your database to get both 'countries' and 'families'
 const dbRef = db.ref();
 
-// 4. Listen for data from Firebase
+// 4. Listen for data from Firebase (WITH LOGS)
+console.log("1. Requesting data from Firebase...");
+
 dbRef.on('value', (snapshot) => {
+    console.log("2. SUCCESS! Connection made.");
+    
     const data = snapshot.val();
+    console.log("3. Raw Data received:", data);
     
     if (data) {
+        console.log("4. Sending data to render function...");
         renderDraftBoard(data);
     } else {
+        console.warn("4. Database returned null (empty).");
         document.getElementById('draft-board').innerHTML = '<p>No data found in the database.</p>';
     }
 }, (error) => {
-    console.error("Firebase Read Error:", error);
-    document.getElementById('draft-board').innerHTML = '<p>Error loading data. Check console for details.</p>';
+    console.error("FIREBASE ERROR:", error);
+    document.getElementById('draft-board').innerHTML = '<p>Error loading data.</p>';
 });
 
 // Function to render the HTML once data is received
