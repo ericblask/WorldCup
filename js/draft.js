@@ -1,9 +1,5 @@
 // draft.js
 
-// Import Firebase modules
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
-
 // 1. YOUR FIREBASE CONFIG
 const firebaseConfig = {
     apiKey: "AIzaSyCKV4Q_7dJ_fPk6WK4rQs8GiZRvCKhgpng",
@@ -15,15 +11,15 @@ const firebaseConfig = {
     appId: "1:1089995362453:web:6cb7fb7f6666bad07c0b9c"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+// 2. Initialize Firebase using the Compat syntax
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-// Reference the root of your database to get both 'countries' and 'families'
-const dbRef = ref(db);
+// 3. Reference the root of your database to get both 'countries' and 'families'
+const dbRef = db.ref();
 
-// Listen for data from Firebase
-onValue(dbRef, (snapshot) => {
+// 4. Listen for data from Firebase
+dbRef.on('value', (snapshot) => {
     const data = snapshot.val();
     
     if (data) {
@@ -36,14 +32,13 @@ onValue(dbRef, (snapshot) => {
     document.getElementById('draft-board').innerHTML = '<p>Error loading data. Check console for details.</p>';
 });
 
-
 // Function to render the HTML once data is received
 function renderDraftBoard(dbData) {
     // Safely fallback to empty objects if data is missing
     const countries = dbData.countries || {};
     const families = dbData.families || {};
 
-    // 1. Group the countries by their group name (Group A, Group B, etc.)
+    // Group the countries by their group name (Group A, Group B, etc.)
     const groups = {};
     for (const key in countries) {
         const country = countries[key];
@@ -56,13 +51,13 @@ function renderDraftBoard(dbData) {
     // Sort group names alphabetically (Group A, Group B ... Group L)
     const sortedGroupNames = Object.keys(groups).sort();
 
-    // 2. Generate the dropdown options for families
+    // Generate the dropdown options for families
     let familyOptions = '<option value="">-- Select Family --</option>';
     for (const key in families) {
         familyOptions += `<option value="${key}">${families[key].name}</option>`;
     }
 
-    // 3. Render the tables
+    // Render the tables
     const draftBoard = document.getElementById('draft-board');
     draftBoard.innerHTML = ''; // Clear the "Loading..." text
     
