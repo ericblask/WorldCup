@@ -36,35 +36,38 @@ dbRef.on('value', (snapshot) => {
 
 // Function to render the HTML once data is received
 function renderDraftBoard(dbData) {
-    // Safely fallback to empty objects if data is missing
     const countries = dbData.countries || {};
     const families = dbData.families || {};
 
-    // Group the countries by their group name (Group A, Group B, etc.)
     const groups = {};
     for (const key in countries) {
         const country = countries[key];
+        
+        // SAFETY CHECK: Skip this loop if the country is null or missing a group
+        if (!country || !country.group) continue;
+
         if (!groups[country.group]) {
             groups[country.group] = [];
         }
         groups[country.group].push(country);
     }
 
-    // Sort group names alphabetically (Group A, Group B ... Group L)
     const sortedGroupNames = Object.keys(groups).sort();
 
-    // Generate the dropdown options for families
     let familyOptions = '<option value="">-- Select Family --</option>';
     for (const key in families) {
-        familyOptions += `<option value="${key}">${families[key].name}</option>`;
+        const family = families[key];
+        
+        // SAFETY CHECK: Skip if family data is missing
+        if (!family || !family.name) continue; 
+        
+        familyOptions += `<option value="${key}">${family.name}</option>`;
     }
 
-    // Render the tables
     const draftBoard = document.getElementById('draft-board');
-    draftBoard.innerHTML = ''; // Clear the "Loading..." text
+    draftBoard.innerHTML = ''; 
     
     sortedGroupNames.forEach(groupName => {
-        // Create Table Element wrapper
         const tableWrapper = document.createElement('div');
         
         let tableHTML = `
@@ -78,15 +81,18 @@ function renderDraftBoard(dbData) {
                 <tbody>
         `;
 
-        // Add rows for each country in the group
         groups[groupName].forEach(country => {
+            // Provide a fallback empty string if a flag URL is missing
+            const flag = country.flagUrl || ''; 
+            const name = country.name || 'Unknown';
+
             tableHTML += `
                 <tr>
                     <td class="flag-cell">
-                        <img src="${country.flagUrl}" alt="${country.name} flag" class="flag-img">
+                        <img src="${flag}" alt="${name} flag" class="flag-img">
                     </td>
                     <td>
-                        <span class="country-name">${country.name}</span>
+                        <span class="country-name">${name}</span>
                     </td>
                     <td class="draft-cell">
                         <select>
