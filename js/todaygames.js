@@ -10,81 +10,41 @@ const firebaseConfig = {
     storageBucket: "worldcup2026-5219e.appspot.com",
     messagingSenderId: "1089995362453",
     appId: "1:1089995362453:web:6cb7fb7f6666bad07c0b9c"
+
+    
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// 2. DATE FILTER SETUP
-// Helper function to format dates as YYYY-MM-DD to match Firebase data
-function getFormattedDate(date) {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-}
-
-// Calculate Yesterday, Today, and Tomorrow based on the user's local timezone
-//const now = new Date();
-//const yesterday = new Date(now);
-//yesterday.setDate(now.getDate() - 1);
-//const tomorrow = new Date(now);
-//tomorrow.setDate(now.getDate() + 1);
-// 1. Initialize 'now' with your specific test date.
-// Note: Adding T12:00:00 ensures timezone offsets don't accidentally push the date back to June 12.
-const now = new Date('2026-06-13T12:00:00'); 
-
-// 2. Calculate yesterday
-const yesterday = new Date(now);
-yesterday.setDate(now.getDate() - 1);
-
-// 3. Calculate tomorrow
-const tomorrow = new Date(now);
-tomorrow.setDate(now.getDate() + 1);
-
-
-// Store the valid date strings in an array for easy comparison
-const validDates = [
-    getFormattedDate(yesterday),
-    getFormattedDate(now),
-    getFormattedDate(tomorrow)
-];
-
 // 3. FETCH BOTH SCHEDULES AND RESULTS
+// Notice we are fetching ref(db) to get the root, which gives us both nodes!
 onValue(ref(db), (snapshot) => {
     const data = snapshot.val();
     const container = document.getElementById('schedule-container');
     
-    if (!data || !data.schedules) {
+    if (!data || !data.recentschedules) {
         container.innerHTML = "<h3>Error: No schedules data found.</h3>";
         return;
     }
 
-    const schedules = data.schedules;
-    const results = data.results || {}; 
+    const schedules = data.recentschedule;
+    const results = data.results || {}; // Fallback to empty object if no results exist yet
 
     container.innerHTML = ''; 
 
-    // 4. Capture the match ID (the key) and put it inside the match object
-    let matchArray = Object.keys(schedules).map(key => {
+    // 4. Capture the match ID (the key, e.g. 537327) and put it inside the match object
+    const matchArray = Object.keys(schedules).map(key => {
         return {
-            matchId: key, 
+            matchId: key, // Saving the key so we can look up the result
             ...schedules[key]
         };
-    });
-
-    // 5. FILTER FOR YESTERDAY, TODAY, AND TOMORROW
-    matchArray = matchArray.filter(match => {
-        // Extract just the 'YYYY-MM-DD' part of the string
-        const datePart = match.date.split(' ')[0]; 
-        // Keep the match only if its date is in our validDates array
-        return validDates.includes(datePart);
     });
 
     // Sort chronologically
     matchArray.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // 6. Loop through sorted and filtered matches
+    // 5. Loop through sorted matches
     matchArray.forEach(match => {
         const datePart = match.date.split(' ')[0];
         const timePart = match.date.split(' ')[1] ? match.date.split(' ')[1].substring(0, 5) : 'TBD';
@@ -101,6 +61,8 @@ onValue(ref(db), (snapshot) => {
             statusClass = 'status-live';
         }
 
+        // Bonus: If you store scores as 'homeScore' and 'awayScore' in your results node,
+        // this will display the score for live/finished games, and the time for future games!
         const scoreDisplay = (status === 'Finished' || status === 'In_Play' || status === 'Paused') 
             ? `<div class="score" style="font-size: 1.2em; font-weight: bold;">${matchResult.homeScore ?? '-'} : ${matchResult.awayScore ?? '-'}</div>` 
             : `<div class="time">${timePart}</div>`;
