@@ -16,7 +16,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const d = new Date();
-d.setDate(d.getDate() - 1); // Subtract one day
+//d.setDate(d.getDate() - 1); // Subtract one day
+d.setDate('2026-06-14')
 const target = getFormattedDate(d);
 
 onValue(ref(db, 'schedules'), (snapshot) => {
