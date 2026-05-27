@@ -27,6 +27,25 @@ onValue(ref(db), (snapshot) => {
 
     const schedules = data.recentschedule;
     const results = data.results || {}; 
+    const drafts = data.draft || {};        // Fetch drafts for family assignments
+
+    // Helper function to find a family name by the country's string name
+    const getFamilyByName = (teamName) => {
+        for (const famKey in drafts) {
+            const familyData = drafts[famKey];
+            
+            if (familyData && familyData.countries) {
+                const draftedCountries = Object.values(familyData.countries);
+                
+                for (const country of draftedCountries) {
+                    if (country.name === teamName) {
+                        return familyData.name || ''; 
+                    }
+                }
+            }
+        }
+        return ''; 
+    };
 
     // 4. Capture the match ID
     const matchArray = Object.keys(schedules).map(key => {
@@ -39,46 +58,78 @@ onValue(ref(db), (snapshot) => {
     // Sort chronologically
     matchArray.sort((a, b) => new Date(a.date) - new Date(b.date));
 
+    // --- NEW: Calculate "Yesterday" ---
+    // We create a date object for right now, then subtract 1 day.
+    // Setting the hours/minutes to 0 ensures we do a clean day-to-day comparison.
+    const today = new Date();
+    const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+
     // Create an empty string to hold all the HTML we generate
     let htmlOutput = ''; 
+    let currentDateHeader = ''; 
 
     // 5. Loop through sorted matches
     matchArray.forEach(match => {
-        // --- NEW: US Date and Time Formatting ---
+        // --- US Date and Time Formatting ---
         const matchDateString = match.date || '';
         let datePart = 'TBD';
         let timePart = 'TBD';
 
         const parsedDate = new Date(matchDateString);
         
-        // Check if it's a valid date object
         if (!isNaN(parsedDate.getTime())) {
-            // US Date format (e.g., "Jun 11, 2026")
             datePart = parsedDate.toLocaleDateString('en-US', {
+                weekday: 'long', 
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric'
             });
             
-            // US 12-hour Time format (e.g., "3:00 PM")
             timePart = parsedDate.toLocaleTimeString('en-US', {
                 hour: 'numeric',
                 minute: '2-digit',
                 hour12: true
             });
         } else {
-            // Fallback to original split if the date string is malformed
             const parts = matchDateString.split(' ');
             if (parts[0]) datePart = parts[0];
             if (parts[1]) timePart = parts[1].substring(0, 5);
         }
         // ----------------------------------------
 
+        // Check if the date has changed. 
+        if (datePart !== currentDateHeader) {
+            // If this is NOT the first date, we must close the previous <details> tag
+            if (currentDateHeader !== '') {
+                htmlOutput += `</div></details>`;
+            }
+            
+            // --- NEW: Determine if the details tag should be open ---
+            let openAttribute = 'open'; // Default to open
+            
+            if (!isNaN(parsedDate.getTime())) {
+                // Strip the time from the match date so we strictly compare the days
+                const matchDay = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate());
+                
+                // If the match day is strictly older than yesterday, remove the 'open' attribute
+                if (matchDay < yesterday) {
+                    openAttribute = ''; 
+                }
+            }
+            
+            // Open a new <details> block using our dynamic openAttribute.
+            htmlOutput += `
+                <details class="date-group" ${openAttribute}>
+                    <summary class="date-header">${datePart}</summary>
+                    <div class="match-list">
+            `;
+            currentDateHeader = datePart; 
+        }
+
         // MERGE RESULTS
         const matchResult = results[match.matchId] || {};
         const status = matchResult.status || 'Scheduled';
         
-        // Determine the CSS class
         let statusClass = '';
         if (status === 'Finished') {
             statusClass = 'status-finished';
@@ -86,15 +137,15 @@ onValue(ref(db), (snapshot) => {
             statusClass = 'status-live';
         }
 
-        // Score display (showing formatted time for scheduled games)
         const scoreDisplay = (status === 'Finished' || status === 'In_Play' || status === 'Paused') 
             ? `<div class="score" style="font-size: 1.2em; font-weight: bold;">${matchResult.homeScore ?? '-'} : ${matchResult.awayScore ?? '-'}</div>` 
             : `<div class="time">${timePart}</div>`;
 
-        // Safely grab the stage 
         const stageText = match.stage || '';
+        const homeFamily = getFamilyByName(match.homeTeam);
+        const awayFamily = getFamilyByName(match.awayTeam);
 
-        // Append HTML structure for the match row
+        // Append the match row
         htmlOutput += `
             <div class="match-row ${statusClass}">
                 <div class="team-left">
@@ -105,7 +156,6 @@ onValue(ref(db), (snapshot) => {
                 
                 <div class="match-info">
                     <div class="stage">${stageText}</div>
-                    <div class="date">${datePart}</div>
                     ${scoreDisplay}
                 </div>
 
@@ -117,6 +167,11 @@ onValue(ref(db), (snapshot) => {
             </div>
         `;
     });
+
+    // We must close the very last <details> block after the loop finishes
+    if (currentDateHeader !== '') {
+        htmlOutput += `</div></details>`;
+    }
 
     // Inject the fully built HTML string into the container all at once
     container.innerHTML = htmlOutput;
