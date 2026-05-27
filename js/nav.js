@@ -2,7 +2,7 @@
 
 const navHTML = `
     <nav class="main-nav">
-        <a href="index.html">Dashboard</a> |
+       // <a href="index.html">Dashboard</a> |
         <a href="schedule.html">Full Schedule</a> |
         <a href="today.html">Today</a> |
         <a href="standings.html">Standings</a>
