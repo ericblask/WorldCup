@@ -99,7 +99,8 @@ onValue(ref(db), (snapshot) => {
             <div class="match-row ${statusClass}">
                 <div class="team-left">
                     <span class="team-name">${match.homeTeam}</span>
-                    <img src="${match.homeFlag}" alt="${match.homeTeam}" width="30">
+                    <img src="${match.homeFlag}" alt="${match.homeTeam}" class="team-flag">
+                    <span class="family-name">${homeFamily}</span>
                 </div>
                 
                 <div class="match-info">
@@ -109,8 +110,9 @@ onValue(ref(db), (snapshot) => {
                 </div>
 
                 <div class="team-right">
-                    <img src="${match.awayFlag}" alt="${match.awayTeam}" width="30">
                     <span class="team-name">${match.awayTeam}</span>
+                    <img src="${match.awayFlag}" alt="${match.awayTeam}" class="team-flag">
+                    <span class="family-name">${awayFamily}</span>
                 </div>
             </div>
         `;
