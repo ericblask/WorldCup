@@ -26,6 +26,24 @@ onValue(ref(db), (snapshot) => {
 
     const { countries, draft: drafts = {}, standings: statsData = {} } = data;
     
+    // --- NEW: Helper function to find family by drafted country name ---
+    const getFamilyByName = (teamName) => {
+        for (const famKey in drafts) {
+            const familyData = drafts[famKey];
+            
+            if (familyData && familyData.countries) {
+                const draftedCountries = Object.values(familyData.countries);
+                
+                for (const country of draftedCountries) {
+                    if (country.name === teamName) {
+                        return familyData.name || '-'; 
+                    }
+                }
+            }
+        }
+        return '-'; 
+    };
+
     // 1. Organize data by 'group'
     const groupedData = {};
 
@@ -35,7 +53,9 @@ onValue(ref(db), (snapshot) => {
             points: 0, goalDifference: 0, goalsFor: 0, 
             playedGames: 0, won: 0, draw: 0, lost: 0, goalsAgainst: 0 
         };
-        const familyName = drafts[teamId]?.family || '-';
+        
+        // Use the helper function to grab the family name
+        const familyName = getFamilyByName(country.name);
         
         const groupKey = country.group || "Unknown";
         if (!groupedData[groupKey]) groupedData[groupKey] = [];
@@ -55,6 +75,7 @@ onValue(ref(db), (snapshot) => {
             b.stats.goalsFor - a.stats.goalsFor
         );
 
+        // --- UPDATED: Moved the Pts column between MP and W ---
         finalHTML += `
             <h3>${groupKey}</h3>
             <table class="standings-table">
@@ -63,18 +84,19 @@ onValue(ref(db), (snapshot) => {
                         <th>Team</th>
                         <th>Family</th>
                         <th>MP</th>
+                        <th>Pts</th>
                         <th>W</th>
                         <th>D</th>
                         <th>L</th>
                         <th>GF</th>
                         <th>GA</th>
                         <th>GD</th>
-                        <th>Pts</th>
                     </tr>
                 </thead>
                 <tbody>
         `;
 
+        // --- UPDATED: Moved the points data to match the new headers ---
         teams.forEach(team => {
             finalHTML += `
                 <tr>
@@ -84,13 +106,13 @@ onValue(ref(db), (snapshot) => {
                     </td>
                     <td style="font-weight:bold">${team.family}</td>
                     <td>${team.stats.playedGames}</td>
+                    <td style="font-weight:bold;">${team.stats.points}</td>
                     <td>${team.stats.won}</td>
                     <td>${team.stats.draw}</td>
                     <td>${team.stats.lost}</td>
                     <td>${team.stats.goalsFor}</td>
                     <td>${team.stats.goalsAgainst}</td>
                     <td>${team.stats.goalDifference}</td>
-                    <td style="font-weight:bold">${team.stats.points}</td>
                 </tr>
             `;
         });
