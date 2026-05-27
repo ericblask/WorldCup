@@ -178,3 +178,32 @@ header {
     margin-bottom: 30px;
     width: 100%;
 }
+
+/* --- Collapsible Date Header Styles --- */
+details.date-group {
+    margin-bottom: 20px;
+}
+
+/* Style the summary element to look like our previous header */
+summary.date-header {
+    background: #e9ecef;
+    padding: 10px 15px;
+    margin: 20px 0 10px 0;
+    border-radius: 5px;
+    color: #495057;
+    font-size: 1.2em;
+    font-weight: bold;
+    border-left: 5px solid #007bff;
+    cursor: pointer; /* Turns the mouse into a hand to indicate it's clickable */
+    outline: none; /* Removes the default focus outline */
+}
+
+/* Slight color change when hovering over the header */
+summary.date-header:hover {
+    background: #e2e6ea;
+}
+
+/* Removes top margin from the very first date header */
+#schedule-container details:first-child summary {
+    margin-top: 0;
+}
