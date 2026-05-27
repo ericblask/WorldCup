@@ -81,6 +81,13 @@ header {
     height: auto;           /* Maintains the aspect ratio of the flag */
 }
 
+/* Styling for the drafted family name */
+.family-name {
+    font-size: 0.85em;
+    color: #555;
+    margin-top: 5px;
+}
+
 /* Light green background for finished matches */
 .match-row.status-finished {
     background-color: #d4edda;
@@ -156,7 +163,6 @@ header {
     padding: 0 20px;
 }
 
-\\
 #standings-container h3 {
     background: #e9ecef;
     padding: 10px 15px;
