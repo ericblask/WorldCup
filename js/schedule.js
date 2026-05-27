@@ -58,6 +58,12 @@ onValue(ref(db), (snapshot) => {
     // Sort chronologically
     matchArray.sort((a, b) => new Date(a.date) - new Date(b.date));
 
+    // --- NEW: Calculate "Yesterday" ---
+    // We create a date object for right now, then subtract 1 day.
+    // Setting the hours/minutes to 0 ensures we do a clean day-to-day comparison.
+    const today = new Date();
+    const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+
     // Create an empty string to hold all the HTML we generate
     let htmlOutput = ''; 
     let currentDateHeader = ''; 
@@ -91,16 +97,29 @@ onValue(ref(db), (snapshot) => {
         }
         // ----------------------------------------
 
-        // NEW: Check if the date has changed. 
+        // Check if the date has changed. 
         if (datePart !== currentDateHeader) {
             // If this is NOT the first date, we must close the previous <details> tag
             if (currentDateHeader !== '') {
                 htmlOutput += `</div></details>`;
             }
             
-            // Open a new <details> block. 'open' makes it expanded by default.
+            // --- NEW: Determine if the details tag should be open ---
+            let openAttribute = 'open'; // Default to open
+            
+            if (!isNaN(parsedDate.getTime())) {
+                // Strip the time from the match date so we strictly compare the days
+                const matchDay = new Date(parsedDate.getFullYear(), parsedDate.getMonth(), parsedDate.getDate());
+                
+                // If the match day is strictly older than yesterday, remove the 'open' attribute
+                if (matchDay < yesterday) {
+                    openAttribute = ''; 
+                }
+            }
+            
+            // Open a new <details> block using our dynamic openAttribute.
             htmlOutput += `
-                <details class="date-group" open>
+                <details class="date-group" ${openAttribute}>
                     <summary class="date-header">${datePart}</summary>
                     <div class="match-list">
             `;
