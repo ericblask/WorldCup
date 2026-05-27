@@ -123,7 +123,7 @@ const schedules = data.schedules;
                 <div class="team-left">
                     <span class="team-name">${match.homeTeam}</span>
                     <img src="${match.homeFlag}" alt="${match.homeTeam}" class="team-flag">
-                    <span class="family-name" style="font-size: 0.85em; color: #555; margin-top: 5px;">${homeFamily}</span>
+                    <span class="family-name">${homeFamily}</span>
                 </div>
                 
                 <div class="match-info">
@@ -135,7 +135,7 @@ const schedules = data.schedules;
                 <div class="team-right">
                     <span class="team-name">${match.awayTeam}</span>
                     <img src="${match.awayFlag}" alt="${match.awayTeam}" class="team-flag">
-                    <span class="family-name" style="font-size: 0.85em; color: #555; margin-top: 5px;">${awayFamily}</span>
+                    <span class="family-name">${awayFamily}</span>
                 </div>
             </div>
         `;
