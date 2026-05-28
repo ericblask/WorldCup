@@ -70,6 +70,9 @@ header {
     align-items: center;
     gap: 10px;
     width: 120px;
+    padding: 10px; /* Added for the winner background to look good */
+    border-radius: 8px; /* Smooth corners */
+    box-sizing: border-box; /* Keeps the 120px width consistent */
 }
 
 .team-right { 
@@ -88,10 +91,16 @@ header {
     margin-top: 5px;
 }
 
-/* Light green background for finished matches */
+/* Apply the green background to the winning team container */
+.team-left.winner, 
+.team-right.winner {
+    background-color: #83D475;
+}
+
+/* Grey background for finished matches */
 .match-row.status-finished {
-    background-color: #d4edda;
-    border: 1px solid #c3e6cb;
+    background-color: #94979A;
+    border: 1px solid #7d8083;
 }
 
 /* Light blue background for live/paused matches */
@@ -99,7 +108,6 @@ header {
     background-color: #cce5ff;
     border: 1px solid #b8daff;
 }
-
 
 /* Styling for the Group Stage / Knockout Round label */
 .stage {
