@@ -131,8 +131,23 @@ onValue(ref(db), (snapshot) => {
         const status = matchResult.status || 'Scheduled';
         
         let statusClass = '';
+        let homeWinnerClass = ''; 
+        let awayWinnerClass = ''; 
+
         if (status === 'Finished') {
             statusClass = 'status-finished';
+
+            // Determine the winner based on the final score
+            const homeScore = parseInt(matchResult.homeScore, 10);
+            const awayScore = parseInt(matchResult.awayScore, 10);
+            
+            if (!isNaN(homeScore) && !isNaN(awayScore)) {
+                if (homeScore > awayScore) {
+                    homeWinnerClass = 'winner';
+                } else if (awayScore > homeScore) {
+                    awayWinnerClass = 'winner';
+                }
+            }
         } else if (status === 'In_Play' || status === 'Paused') {
             statusClass = 'status-live';
         }
@@ -148,7 +163,7 @@ onValue(ref(db), (snapshot) => {
         // Append the match row
         htmlOutput += `
             <div class="match-row ${statusClass}">
-                <div class="team-left">
+                <div class="team-left ${homeWinnerClass}">
                     <span class="team-name">${match.homeTeam}</span>
                     <img src="${match.homeFlag}" alt="${match.homeTeam}" class="team-flag">
                     <span class="family-name">${homeFamily}</span>
@@ -159,7 +174,7 @@ onValue(ref(db), (snapshot) => {
                     ${scoreDisplay}
                 </div>
 
-                <div class="team-right">
+                <div class="team-right ${awayWinnerClass}">
                     <span class="team-name">${match.awayTeam}</span>
                     <img src="${match.awayFlag}" alt="${match.awayTeam}" class="team-flag">
                     <span class="family-name">${awayFamily}</span>
