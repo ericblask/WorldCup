@@ -1,4 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -11,10 +11,11 @@ const firebaseConfig = {
     appId: "1:1089995362453:web:6cb7fb7f6666bad07c0b9c"
 };
 
-const app = initializeApp(firebaseConfig);
+// 1. Prevent "Firebase App already exists" error if schedule.js is on the same page
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getDatabase(app);
 
-// Map database strings to user-friendly titles
+// Map standard keys to user-friendly titles
 const stageDisplayNames = {
     'LAST_32': 'Round of 32',
     'LAST_16': 'Round of 16',
@@ -24,10 +25,31 @@ const stageDisplayNames = {
     'FINAL': 'Final'
 };
 
+const knockoutStages = ['LAST_32', 'LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS', 'THIRD_PLACE', 'FINAL'];
+
+// 2. Helper to map different database string formats (e.g. "Round of 16") to our standard keys
+const normalizeStage = (stageStr) => {
+    if (!stageStr) return 'UNKNOWN';
+    const s = stageStr.toUpperCase().replace(/[-\s_]+/g, '');
+    if (s.includes('32')) return 'LAST_32';
+    if (s.includes('16')) return 'LAST_16';
+    if (s.includes('QUARTER')) return 'QUARTER_FINALS';
+    if (s.includes('SEMI')) return 'SEMI_FINALS';
+    if (s.includes('THIRD') || s.includes('3RD')) return 'THIRD_PLACE';
+    if (s === 'FINAL' || s === 'FINALS') return 'FINAL';
+    return stageStr; // Fallback
+};
+
 onValue(ref(db), (snapshot) => {
     const data = snapshot.val();
     const container = document.getElementById('vertical-knockout-container');
     
+    // Safety check in case the container isn't in the HTML
+    if (!container) {
+        console.warn("Container 'vertical-knockout-container' not found in the HTML.");
+        return;
+    }
+
     if (!data || !data.schedules) {
         container.innerHTML = "<h3>Error: No schedules data found.</h3>";
         return;
@@ -55,13 +77,19 @@ onValue(ref(db), (snapshot) => {
         ...schedules[key]
     })).sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // EXACT MATCH FILTERING FOR KNOCKOUTS
-    const knockoutStages = ['LAST_32', 'LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS', 'THIRD_PLACE', 'FINAL'];
-    const knockoutMatches = matchArray.filter(match => knockoutStages.includes(match.stage));
+    // FLEXIBLE MATCH FILTERING FOR KNOCKOUTS
+    const knockoutMatches = [];
+    matchArray.forEach(match => {
+        const normStage = normalizeStage(match.stage);
+        if (knockoutStages.includes(normStage)) {
+            match.normalizedStage = normStage; // Save the normalized version for grouping
+            knockoutMatches.push(match);
+        }
+    });
 
     const roundsMap = new Map();
     knockoutMatches.forEach(match => {
-        const stage = match.stage || 'Unknown';
+        const stage = match.normalizedStage;
         if (!roundsMap.has(stage)) roundsMap.set(stage, []);
         roundsMap.get(stage).push(match);
     });
@@ -71,7 +99,7 @@ onValue(ref(db), (snapshot) => {
 
     let htmlOutput = ''; 
 
-    // We can iterate over knockoutStages to ensure they print in the correct tournament order
+    // Iterate over knockoutStages to ensure they print in the correct tournament order
     knockoutStages.forEach((roundKey) => {
         if (!roundsMap.has(roundKey)) return; // Skip if no matches for this round yet
         
@@ -147,6 +175,11 @@ onValue(ref(db), (snapshot) => {
         if (currentDateHeader !== '') htmlOutput += `</div></details>`;
         htmlOutput += `</div>`; // Close round-group
     });
+
+    // 3. Prevent rendering blank empty tags if no knockout games exist yet
+    if (htmlOutput === '') {
+        htmlOutput = '<p>No knockout matches are scheduled yet.</p>';
+    }
 
     container.innerHTML = htmlOutput;
 });
