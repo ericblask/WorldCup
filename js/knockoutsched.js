@@ -11,7 +11,7 @@ const firebaseConfig = {
     appId: "1:1089995362453:web:6cb7fb7f6666bad07c0b9c"
 };
 
-// 1. Prevent "Firebase App already exists" error if schedule.js is on the same page
+// 1. Prevent "Firebase App already exists" error
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getDatabase(app);
 
@@ -27,26 +27,29 @@ const stageDisplayNames = {
 
 const knockoutStages = ['LAST_32', 'LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS', 'THIRD_PLACE', 'FINAL'];
 
-// 2. Helper to map different database string formats (e.g. "Round of 16") to our standard keys
+// 2. Safely matches the database strings (e.g., "Last 16", "Quarter Finals") to standard keys
 const normalizeStage = (stageStr) => {
     if (!stageStr) return 'UNKNOWN';
-    const s = stageStr.toUpperCase().replace(/[-\s_]+/g, '');
+    const s = String(stageStr).toUpperCase();
+    
     if (s.includes('32')) return 'LAST_32';
     if (s.includes('16')) return 'LAST_16';
     if (s.includes('QUARTER')) return 'QUARTER_FINALS';
     if (s.includes('SEMI')) return 'SEMI_FINALS';
     if (s.includes('THIRD') || s.includes('3RD')) return 'THIRD_PLACE';
-    if (s === 'FINAL' || s === 'FINALS') return 'FINAL';
-    return stageStr; // Fallback
+    // Match "Final" only if it's not a Quarter or Semi Final
+    if (s.includes('FINAL')) return 'FINAL'; 
+    
+    return 'GROUP'; // Default for "Group A", "Group B", etc.
 };
 
 onValue(ref(db), (snapshot) => {
     const data = snapshot.val();
     const container = document.getElementById('vertical-knockout-container');
     
-    // Safety check in case the container isn't in the HTML
+    // Alert the console if the correct div is missing from the HTML
     if (!container) {
-        console.warn("Container 'vertical-knockout-container' not found in the HTML.");
+        console.warn("Knockout script running, but <div id='vertical-knockout-container'></div> is missing from the HTML.");
         return;
     }
 
@@ -72,20 +75,37 @@ onValue(ref(db), (snapshot) => {
         return ''; 
     };
 
-    let matchArray = Object.keys(schedules).map(key => ({
-        matchId: key, 
-        ...schedules[key]
-    })).sort((a, b) => new Date(a.date) - new Date(b.date));
+    // 3. Safely build the match array (ignores null values in sparse arrays)
+    let matchArray = [];
+    Object.keys(schedules).forEach(key => {
+        const matchData = schedules[key];
+        // Ensure the slot isn't null and has actual data
+        if (matchData && typeof matchData === 'object' && matchData.stage) {
+            matchArray.push({
+                matchId: key, 
+                ...matchData
+            });
+        }
+    });
 
-    // FLEXIBLE MATCH FILTERING FOR KNOCKOUTS
+    // Sort chronologically using utcDate (highly reliable cross-browser parsing)
+    matchArray.sort((a, b) => {
+        const dateA = a.utcDate ? new Date(a.utcDate) : new Date(a.date);
+        const dateB = b.utcDate ? new Date(b.utcDate) : new Date(b.date);
+        return dateA - dateB;
+    });
+
+    // 4. Flexible match filtering for knockouts
     const knockoutMatches = [];
     matchArray.forEach(match => {
         const normStage = normalizeStage(match.stage);
         if (knockoutStages.includes(normStage)) {
-            match.normalizedStage = normStage; // Save the normalized version for grouping
+            match.normalizedStage = normStage; 
             knockoutMatches.push(match);
         }
     });
+
+    console.log(`Successfully mapped ${knockoutMatches.length} knockout matches.`);
 
     const roundsMap = new Map();
     knockoutMatches.forEach(match => {
@@ -99,9 +119,9 @@ onValue(ref(db), (snapshot) => {
 
     let htmlOutput = ''; 
 
-    // Iterate over knockoutStages to ensure they print in the correct tournament order
+    // Iterate over standard sequence to guarantee rendering order
     knockoutStages.forEach((roundKey) => {
-        if (!roundsMap.has(roundKey)) return; // Skip if no matches for this round yet
+        if (!roundsMap.has(roundKey)) return; 
         
         const matchesInRound = roundsMap.get(roundKey);
         const displayTitle = stageDisplayNames[roundKey] || roundKey;
@@ -111,16 +131,19 @@ onValue(ref(db), (snapshot) => {
         let currentDateHeader = ''; 
 
         matchesInRound.forEach(match => {
-            const matchDateString = match.date || '';
+            // Prioritize utcDate for generating safe dates, fallback to date string
+            const safeDateString = match.utcDate || match.date || '';
+            const parsedDate = new Date(safeDateString);
+            
             let datePart = 'TBD';
             let timePart = 'TBD';
-            const parsedDate = new Date(matchDateString);
             
             if (!isNaN(parsedDate.getTime())) {
                 datePart = parsedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
                 timePart = parsedDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
             } else {
-                const parts = matchDateString.split(' ');
+                // Absolute fallback if parsing fails completely
+                const parts = (match.date || '').split(' ');
                 if (parts[0]) datePart = parts[0];
                 if (parts[1]) timePart = parts[1].substring(0, 5);
             }
@@ -157,7 +180,7 @@ onValue(ref(db), (snapshot) => {
                 <div class="match-row ${statusClass}">
                     <div class="team-left">
                         <span class="team-name">${match.homeTeam}</span>
-                        <img src="${match.homeFlag}" alt="${match.homeTeam}" class="team-flag">
+                        ${match.homeFlag ? `<img src="${match.homeFlag}" alt="${match.homeTeam}" class="team-flag">` : `<div class="team-flag-placeholder"></div>`}
                         <span class="family-name">${getFamilyByName(match.homeTeam)}</span>
                     </div>
                     <div class="match-info">
@@ -165,7 +188,7 @@ onValue(ref(db), (snapshot) => {
                     </div>
                     <div class="team-right">
                         <span class="team-name">${match.awayTeam}</span>
-                        <img src="${match.awayFlag}" alt="${match.awayTeam}" class="team-flag">
+                        ${match.awayFlag ? `<img src="${match.awayFlag}" alt="${match.awayTeam}" class="team-flag">` : `<div class="team-flag-placeholder"></div>`}
                         <span class="family-name">${getFamilyByName(match.awayTeam)}</span>
                     </div>
                 </div>
@@ -176,7 +199,6 @@ onValue(ref(db), (snapshot) => {
         htmlOutput += `</div>`; // Close round-group
     });
 
-    // 3. Prevent rendering blank empty tags if no knockout games exist yet
     if (htmlOutput === '') {
         htmlOutput = '<p>No knockout matches are scheduled yet.</p>';
     }
