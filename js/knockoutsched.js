@@ -46,13 +46,13 @@ onValue(ref(db), (snapshot) => {
     console.log("Knockout Script: Data fetched from Firebase successfully.");
     const data = snapshot.val();
     
-    let container = document.getElementById('schedule-container');
+    let container = document.getElementById('vertical-knockout-container');
     
     // --- NEW: Failsafe if the HTML div is missing ---
     if (!container) {
-        console.warn("WARNING: <div id='schedule-container'></div> is missing from your HTML! Creating a temporary one at the bottom of the page.");
+        console.warn("WARNING: <div id='vertical-knockout-container'></div> is missing from your HTML! Creating a temporary one at the bottom of the page.");
         container = document.createElement('div');
-        container.id = 'schedule-container';
+        container.id = 'vertical-knockout-container';
         document.body.appendChild(container);
     }
 
