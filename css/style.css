@@ -215,3 +215,122 @@ summary.date-header:hover {
 #schedule-container details:first-child summary {
     margin-top: 0;
 }
+
+/* =========================================
+   KNOCKOUT VERTICAL VIEW STYLES
+   ========================================= */
+
+/* Container for each distinct knockout round (e.g., Round of 16) */
+.round-group {
+    background: #ffffff;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    margin-bottom: 30px;
+}
+
+/* The clickable summary header for the round */
+.round-summary {
+    cursor: pointer;
+    outline: none;
+    padding: 5px 0;
+    border-bottom: 2px solid #007bff; 
+    margin-bottom: 10px;
+}
+
+.round-header {
+    display: inline-block;
+    margin: 0;
+    font-size: 1.5em;
+    color: #004b87;
+}
+
+/* Placeholder for when a team isn't decided yet */
+.team-flag-placeholder {
+    width: 30px;
+    height: 20px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    border: 1px dashed #adb5bd;
+}
+
+/* =========================================
+   TOURNAMENT BRACKET VIEW STYLES
+   ========================================= */
+
+/* Container for horizontal scrolling */
+.bracket-layout {
+    display: flex;
+    gap: 30px;
+    overflow-x: auto;
+    padding-bottom: 20px; /* Leaves room for the horizontal scrollbar */
+}
+
+/* Each vertical column (Round of 32, Round of 16, etc.) */
+.bracket-column {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-width: 220px; 
+}
+
+.bracket-stage-header {
+    text-align: center;
+    margin-bottom: 10px;
+    color: #004b87;
+    font-size: 1.1em;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #ddd;
+}
+
+/* The actual match card in the bracket */
+.bracket-match-box {
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 5px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.bracket-team {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 0.9em;
+}
+
+.bracket-team:last-child {
+    margin-bottom: 0;
+}
+
+/* Wrap the flag and team name together */
+.bracket-team > div {
+    display: flex;
+    align-items: center;
+    gap: 8px; 
+}
+
+.bracket-flag {
+    width: 20px;
+    height: 15px;
+    object-fit: cover;
+    border-radius: 2px;
+    border: 1px solid #eee;
+}
+
+.bracket-flag-placeholder {
+    width: 20px;
+    height: 15px;
+    background: #e9ecef;
+    border-radius: 2px;
+    border: 1px dashed #adb5bd;
+}
+
+.bracket-score {
+    font-weight: bold;
+    background: #f4f4f4;
+    padding: 2px 8px;
+    border-radius: 3px;
+    color: #333;
+}
