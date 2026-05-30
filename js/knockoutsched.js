@@ -1,4 +1,3 @@
-```javascript
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
@@ -125,12 +124,13 @@ onValue(ref(db), (snapshot) => {
         const matchesInRound = roundsMap.get(roundKey);
         const displayTitle = stageDisplayNames[roundKey] || roundKey;
         
-        // NEW: Changed to a collapsible <details> tag for the round itself
+        // NEW: Keep the div wrapper for CSS, but put details inside it
         htmlOutput += `
-            <details class="round-group" open>
-                <summary class="round-header" style="cursor: pointer;">
-                    <h2 style="display: inline-block; margin: 0;">${displayTitle}</h2>
-                </summary>
+            <div class="round-group">
+                <details open>
+                    <summary class="round-header" style="cursor: pointer;">
+                        <h2 style="display: inline-block; margin: 0;">${displayTitle}</h2>
+                    </summary>
         `;
         
         let currentDateHeader = ''; 
@@ -201,8 +201,8 @@ onValue(ref(db), (snapshot) => {
         // Close the last date group
         if (currentDateHeader !== '') htmlOutput += `</div></details>`;
         
-        // NEW: Close the round group details tag
-        htmlOutput += `</details>`; 
+        // NEW: Close both the details tag and the div wrapper
+        htmlOutput += `</details></div>`; 
     });
 
     if (htmlOutput === '') {
@@ -211,6 +211,3 @@ onValue(ref(db), (snapshot) => {
 
     container.innerHTML = htmlOutput;
 });
-
-
-```
