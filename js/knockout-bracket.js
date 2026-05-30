@@ -121,8 +121,24 @@ onValue(ref(db), (snapshot) => {
         const homeFlagHtml = match.homeFlag ? `<img src="${match.homeFlag}" class="bracket-flag" alt="">` : `<div class="bracket-flag-placeholder"></div>`;
         const awayFlagHtml = match.awayFlag ? `<img src="${match.awayFlag}" class="bracket-flag" alt="">` : `<div class="bracket-flag-placeholder"></div>`;
 
+        // Parse and format Date & Time
+        const safeDateString = match.utcDate || match.date || '';
+        let dateTimeDisplay = 'Date TBD';
+        
+        if (safeDateString) {
+            const parsedDate = new Date(safeDateString);
+            if (!isNaN(parsedDate.getTime())) {
+                const datePart = parsedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const timePart = parsedDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                dateTimeDisplay = `${datePart} &bull; ${timePart}`;
+            } else {
+                dateTimeDisplay = safeDateString; 
+            }
+        }
+
         return `
             <div class="bracket-match-box">
+                <div class="bracket-match-time">${dateTimeDisplay}</div>
                 <div class="bracket-team">
                     <div>
                         ${homeFlagHtml}
