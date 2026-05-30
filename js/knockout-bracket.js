@@ -121,7 +121,7 @@ onValue(ref(db), (snapshot) => {
         const homeFlagHtml = match.homeFlag ? `<img src="${match.homeFlag}" class="bracket-flag" alt="">` : `<div class="bracket-flag-placeholder"></div>`;
         const awayFlagHtml = match.awayFlag ? `<img src="${match.awayFlag}" class="bracket-flag" alt="">` : `<div class="bracket-flag-placeholder"></div>`;
 
-        // --- NEW: Using the provided Date and Time Formatting logic ---
+        // Date and Time Formatting
         const matchDateString = match.date || '';
         let datePart = 'TBD';
         let timePart = 'TBD';
@@ -148,10 +148,10 @@ onValue(ref(db), (snapshot) => {
             if (parts[1]) timePart = parts[1].substring(0, 5);
         }
 
+        // --- NEW: Replaced the bullet with a <br> tag so they stack vertically ---
         const dateTimeDisplay = (datePart !== 'TBD' || timePart !== 'TBD') 
-            ? `${datePart} &bull; ${timePart}` 
+            ? `${datePart}<br>${timePart}` 
             : 'Date TBD';
-        // -----------------------------------------------------------------
 
         return `
             <div class="bracket-match-box">
@@ -169,60 +169,3 @@ onValue(ref(db), (snapshot) => {
                         <span>${match.awayTeam || 'TBD'}</span>
                     </div>
                     <span class="bracket-score">${awayScore}</span>
-                </div>
-            </div>
-        `;
-    };
-
-    const createColumnHTML = (matches, stageKey) => {
-        if (!matches || matches.length === 0) return '';
-        const displayTitle = stageDisplayNames[stageKey] || stageKey;
-        let colHtml = `<div class="bracket-column"><h3 class="bracket-stage-header">${displayTitle}</h3>`;
-        matches.forEach(match => { colHtml += createMatchHTML(match); });
-        colHtml += `</div>`;
-        return colHtml;
-    };
-
-    // --- 3. BUILD THE SPLIT BRACKET HTML ---
-    let htmlOutput = `<div class="split-bracket-wrapper">`;
-
-    // LEFT SIDE: R32 -> R16 -> QF -> SF
-    htmlOutput += `<div class="bracket-side left-side">`;
-    ['LAST_32', 'LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS'].forEach(stage => {
-        htmlOutput += createColumnHTML(bracketData.left[stage], stage);
-    });
-    htmlOutput += `</div>`;
-
-    // CENTER: Finals & Third Place
-    htmlOutput += `<div class="bracket-center">`;
-    
-    if (bracketData.center['FINAL'].length > 0) {
-        htmlOutput += `
-            <div class="championship-wrapper">
-                <h2>World Cup Final</h2>
-                ${createMatchHTML(bracketData.center['FINAL'][0])}
-            </div>
-        `;
-    }
-    
-    if (bracketData.center['THIRD_PLACE'].length > 0) {
-        htmlOutput += `
-            <div class="third-place-wrapper">
-                <h3>Third Place Play-off</h3>
-                ${createMatchHTML(bracketData.center['THIRD_PLACE'][0])}
-            </div>
-        `;
-    }
-    htmlOutput += `</div>`;
-
-    // RIGHT SIDE: Rendered in reverse order (SF <- QF <- R16 <- R32)
-    htmlOutput += `<div class="bracket-side right-side">`;
-    ['SEMI_FINALS', 'QUARTER_FINALS', 'LAST_16', 'LAST_32'].forEach(stage => {
-        htmlOutput += createColumnHTML(bracketData.right[stage], stage);
-    });
-    htmlOutput += `</div>`;
-
-    htmlOutput += `</div>`; // Close split-bracket-wrapper
-
-    container.innerHTML = htmlOutput;
-});
