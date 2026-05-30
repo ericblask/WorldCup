@@ -3,11 +3,11 @@
 const navHTML = `
     <nav class="main-nav">
         
-        <a href="schedule.html">Full Schedule</a> |
-        <a href="today.html">Today</a> |
-        <a href="familystandings.html">Family Standings</a> 
-        <a href="standings.html">Standings</a>
-        <a href="knockoutsched.html">Knockout Round Schedule</a>
+        <a href="schedule.html">Full Schedule</a> | 
+        <a href="today.html">Today</a> | 
+        <a href="familystandings.html">Family Standings</a> | 
+        <a href="standings.html">Standings</a> | 
+        <a href="knockoutsched.html">Knockout Round Schedule</a> |
     </nav>
 `;
 
