@@ -83,8 +83,8 @@ onValue(ref(db), (snapshot) => {
     });
 
     matchArray.sort((a, b) => {
-        const dateA = a.utcDate ? new Date(a.utcDate) : new Date(a.date);
-        const dateB = b.utcDate ? new Date(b.utcDate) : new Date(b.date);
+        const dateA = a.date ? new Date(a.date) : new Date(0);
+        const dateB = b.date ? new Date(b.date) : new Date(0);
         return dateA - dateB;
     });
 
@@ -121,20 +121,37 @@ onValue(ref(db), (snapshot) => {
         const homeFlagHtml = match.homeFlag ? `<img src="${match.homeFlag}" class="bracket-flag" alt="">` : `<div class="bracket-flag-placeholder"></div>`;
         const awayFlagHtml = match.awayFlag ? `<img src="${match.awayFlag}" class="bracket-flag" alt="">` : `<div class="bracket-flag-placeholder"></div>`;
 
-        // Parse and format Date & Time
-        const safeDateString = match.utcDate || match.date || '';
-        let dateTimeDisplay = 'Date TBD';
+        // --- NEW: Using the provided Date and Time Formatting logic ---
+        const matchDateString = match.date || '';
+        let datePart = 'TBD';
+        let timePart = 'TBD';
+
+        const parsedDate = new Date(matchDateString);
         
-        if (safeDateString) {
-            const parsedDate = new Date(safeDateString);
-            if (!isNaN(parsedDate.getTime())) {
-                const datePart = parsedDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                const timePart = parsedDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-                dateTimeDisplay = `${datePart} &bull; ${timePart}`;
-            } else {
-                dateTimeDisplay = safeDateString; 
-            }
+        if (!isNaN(parsedDate.getTime())) {
+            datePart = parsedDate.toLocaleDateString('en-US', {
+                weekday: 'long', 
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            
+            timePart = parsedDate.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        } else if (matchDateString) {
+            // Fallback for strings that don't parse as clean dates
+            const parts = matchDateString.split(' ');
+            if (parts[0]) datePart = parts[0];
+            if (parts[1]) timePart = parts[1].substring(0, 5);
         }
+
+        const dateTimeDisplay = (datePart !== 'TBD' || timePart !== 'TBD') 
+            ? `${datePart} &bull; ${timePart}` 
+            : 'Date TBD';
+        // -----------------------------------------------------------------
 
         return `
             <div class="bracket-match-box">
