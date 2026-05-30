@@ -11,7 +11,7 @@ const firebaseConfig = {
     appId: "1:1089995362453:web:6cb7fb7f6666bad07c0b9c"
 };
 
-// 1. Prevent "Firebase App already exists" error
+// 1. Prevent "Firebase App already exists" error safely
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getDatabase(app);
 
@@ -27,7 +27,7 @@ const stageDisplayNames = {
 
 const knockoutStages = ['LAST_32', 'LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS', 'THIRD_PLACE', 'FINAL'];
 
-// 2. Safely matches the database strings (e.g., "Last 16", "Quarter Finals") to standard keys
+// 2. Safely matches the database strings
 const normalizeStage = (stageStr) => {
     if (!stageStr) return 'UNKNOWN';
     const s = String(stageStr).toUpperCase();
@@ -37,24 +37,27 @@ const normalizeStage = (stageStr) => {
     if (s.includes('QUARTER')) return 'QUARTER_FINALS';
     if (s.includes('SEMI')) return 'SEMI_FINALS';
     if (s.includes('THIRD') || s.includes('3RD')) return 'THIRD_PLACE';
-    // Match "Final" only if it's not a Quarter or Semi Final
     if (s.includes('FINAL')) return 'FINAL'; 
     
-    return 'GROUP'; // Default for "Group A", "Group B", etc.
+    return 'GROUP'; 
 };
 
 onValue(ref(db), (snapshot) => {
+    console.log("Knockout Script: Data fetched from Firebase successfully.");
     const data = snapshot.val();
-    const container = document.getElementById('vertical-knockout-container');
     
-    // Alert the console if the correct div is missing from the HTML
+    let container = document.getElementById('schedule-container');
+    
+    // --- NEW: Failsafe if the HTML div is missing ---
     if (!container) {
-        console.warn("Knockout script running, but <div id='vertical-knockout-container'></div> is missing from the HTML.");
-        return;
+        console.warn("WARNING: <div id='schedule-container'></div> is missing from your HTML! Creating a temporary one at the bottom of the page.");
+        container = document.createElement('div');
+        container.id = 'schedule-container';
+        document.body.appendChild(container);
     }
 
     if (!data || !data.schedules) {
-        container.innerHTML = "<h3>Error: No schedules data found.</h3>";
+        container.innerHTML = "<h3>Error: No schedules data found in database.</h3>";
         return;
     }
 
@@ -75,27 +78,22 @@ onValue(ref(db), (snapshot) => {
         return ''; 
     };
 
-    // 3. Safely build the match array (ignores null values in sparse arrays)
+    // 3. Build match array
     let matchArray = [];
     Object.keys(schedules).forEach(key => {
         const matchData = schedules[key];
-        // Ensure the slot isn't null and has actual data
         if (matchData && typeof matchData === 'object' && matchData.stage) {
-            matchArray.push({
-                matchId: key, 
-                ...matchData
-            });
+            matchArray.push({ matchId: key, ...matchData });
         }
     });
 
-    // Sort chronologically using utcDate (highly reliable cross-browser parsing)
     matchArray.sort((a, b) => {
         const dateA = a.utcDate ? new Date(a.utcDate) : new Date(a.date);
         const dateB = b.utcDate ? new Date(b.utcDate) : new Date(b.date);
         return dateA - dateB;
     });
 
-    // 4. Flexible match filtering for knockouts
+    // 4. Filter for Knockouts
     const knockoutMatches = [];
     matchArray.forEach(match => {
         const normStage = normalizeStage(match.stage);
@@ -105,7 +103,9 @@ onValue(ref(db), (snapshot) => {
         }
     });
 
-    console.log(`Successfully mapped ${knockoutMatches.length} knockout matches.`);
+    // Print to developer console so you know exactly what the script found
+    console.log(`Knockout Script: Found ${matchArray.length} total matches.`);
+    console.log(`Knockout Script: Filtered down to ${knockoutMatches.length} KNOCKOUT matches.`);
 
     const roundsMap = new Map();
     knockoutMatches.forEach(match => {
@@ -119,7 +119,6 @@ onValue(ref(db), (snapshot) => {
 
     let htmlOutput = ''; 
 
-    // Iterate over standard sequence to guarantee rendering order
     knockoutStages.forEach((roundKey) => {
         if (!roundsMap.has(roundKey)) return; 
         
@@ -131,7 +130,6 @@ onValue(ref(db), (snapshot) => {
         let currentDateHeader = ''; 
 
         matchesInRound.forEach(match => {
-            // Prioritize utcDate for generating safe dates, fallback to date string
             const safeDateString = match.utcDate || match.date || '';
             const parsedDate = new Date(safeDateString);
             
@@ -142,7 +140,6 @@ onValue(ref(db), (snapshot) => {
                 datePart = parsedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
                 timePart = parsedDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
             } else {
-                // Absolute fallback if parsing fails completely
                 const parts = (match.date || '').split(' ');
                 if (parts[0]) datePart = parts[0];
                 if (parts[1]) timePart = parts[1].substring(0, 5);
@@ -196,7 +193,7 @@ onValue(ref(db), (snapshot) => {
         });
 
         if (currentDateHeader !== '') htmlOutput += `</div></details>`;
-        htmlOutput += `</div>`; // Close round-group
+        htmlOutput += `</div>`; 
     });
 
     if (htmlOutput === '') {
