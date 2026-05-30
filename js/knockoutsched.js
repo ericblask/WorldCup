@@ -125,7 +125,13 @@ onValue(ref(db), (snapshot) => {
         const matchesInRound = roundsMap.get(roundKey);
         const displayTitle = stageDisplayNames[roundKey] || roundKey;
         
-        htmlOutput += `<div class="round-group"><h2 class="round-header">${displayTitle}</h2>`;
+        htmlOutput += `
+            <details class="round-group" open style="margin-bottom: 1.5rem;">
+                <summary class="round-summary" style="cursor: pointer; padding: 5px 0;">
+                    <h2 class="round-header" style="display: inline; vertical-align: middle; margin-left: 5px;">${displayTitle}</h2>
+                </summary>
+                <div class="round-content" style="padding-left: 15px; margin-top: 10px;">
+        `;
         
         let currentDateHeader = ''; 
 
@@ -193,7 +199,7 @@ onValue(ref(db), (snapshot) => {
         });
 
         if (currentDateHeader !== '') htmlOutput += `</div></details>`;
-        htmlOutput += `</div>`; 
+        htmlOutput += `</div></details>`; 
     });
 
     if (htmlOutput === '') {
