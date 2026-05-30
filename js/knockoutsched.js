@@ -1,3 +1,4 @@
+```javascript
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js";
 
@@ -48,7 +49,7 @@ onValue(ref(db), (snapshot) => {
     
     let container = document.getElementById('schedule-container');
     
-    // --- NEW: Failsafe if the HTML div is missing ---
+    // --- Failsafe if the HTML div is missing or named incorrectly ---
     if (!container) {
         console.warn("WARNING: <div id='schedule-container'></div> is missing from your HTML! Creating a temporary one at the bottom of the page.");
         container = document.createElement('div');
@@ -103,7 +104,6 @@ onValue(ref(db), (snapshot) => {
         }
     });
 
-    // Print to developer console so you know exactly what the script found
     console.log(`Knockout Script: Found ${matchArray.length} total matches.`);
     console.log(`Knockout Script: Filtered down to ${knockoutMatches.length} KNOCKOUT matches.`);
 
@@ -125,7 +125,13 @@ onValue(ref(db), (snapshot) => {
         const matchesInRound = roundsMap.get(roundKey);
         const displayTitle = stageDisplayNames[roundKey] || roundKey;
         
-        htmlOutput += `<div class="round-group"><h2 class="round-header">${displayTitle}</h2>`;
+        // NEW: Changed to a collapsible <details> tag for the round itself
+        htmlOutput += `
+            <details class="round-group" open>
+                <summary class="round-header" style="cursor: pointer;">
+                    <h2 style="display: inline-block; margin: 0;">${displayTitle}</h2>
+                </summary>
+        `;
         
         let currentDateHeader = ''; 
 
@@ -156,7 +162,7 @@ onValue(ref(db), (snapshot) => {
                 
                 htmlOutput += `
                     <details class="date-group" ${openAttribute}>
-                        <summary class="date-header">${datePart}</summary>
+                        <summary class="date-header" style="cursor: pointer;">${datePart}</summary>
                         <div class="match-list">
                 `;
                 currentDateHeader = datePart; 
@@ -192,8 +198,11 @@ onValue(ref(db), (snapshot) => {
             `;
         });
 
+        // Close the last date group
         if (currentDateHeader !== '') htmlOutput += `</div></details>`;
-        htmlOutput += `</div>`; 
+        
+        // NEW: Close the round group details tag
+        htmlOutput += `</details>`; 
     });
 
     if (htmlOutput === '') {
@@ -202,3 +211,6 @@ onValue(ref(db), (snapshot) => {
 
     container.innerHTML = htmlOutput;
 });
+
+
+```
