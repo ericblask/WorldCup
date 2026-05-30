@@ -47,20 +47,22 @@ onValue(ref(db), (snapshot) => {
         return ''; 
     };
 
-    // 4. Capture the match ID
+    // 4. Capture the match ID AND filter by stage
     const matchArray = Object.keys(schedules).map(key => {
         return {
             matchId: key, 
             ...schedules[key]
         };
+    }).filter(match => {
+        // --- NEW: Filter to only include matches where the stage contains "group" ---
+        // We use toLowerCase() so it safely matches "Group", "group", "Group A", etc.
+        return match.stage && match.stage.toLowerCase().includes('group');
     });
 
     // Sort chronologically
     matchArray.sort((a, b) => new Date(a.date) - new Date(b.date));
 
-    // --- NEW: Calculate "Yesterday" ---
-    // We create a date object for right now, then subtract 1 day.
-    // Setting the hours/minutes to 0 ensures we do a clean day-to-day comparison.
+    // --- Calculate "Yesterday" ---
     const today = new Date();
     const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
 
@@ -104,7 +106,7 @@ onValue(ref(db), (snapshot) => {
                 htmlOutput += `</div></details>`;
             }
             
-            // --- NEW: Determine if the details tag should be open ---
+            // --- Determine if the details tag should be open ---
             let openAttribute = 'open'; // Default to open
             
             if (!isNaN(parsedDate.getTime())) {
