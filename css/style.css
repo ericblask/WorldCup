@@ -250,11 +250,12 @@ summary.date-header:hover {
    ========================================= */
 .split-bracket-wrapper {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start; /* FIX: Prevents left side from cutting off on desktop */
     align-items: center;
     gap: 40px;
     overflow-x: auto;
-    padding: 20px 0;
+    padding: 20px; /* FIX: Adds breathing room so bracket doesn't hug screen edges */
+    margin: 0 auto; /* Centers the whole block if the screen is wider than the bracket */
     
     /* DRAG TO SCROLL STYLES */
     cursor: grab;
