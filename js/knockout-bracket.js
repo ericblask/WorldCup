@@ -235,7 +235,8 @@ onValue(ref(db), (snapshot) => {
     container.innerHTML = htmlOutput;
 
     // --- 4. ENABLE DESKTOP DRAG-TO-SCROLL ---
-    const slider = document.querySelector('.split-bracket-wrapper');
+    // Targets the parent bracket-container so left side is never cut off
+    const slider = document.getElementById('bracket-container');
     if (slider) {
         let isDown = false;
         let startX;
