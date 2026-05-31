@@ -1,4 +1,6 @@
-/* General reset for clean look */
+/* =========================================
+   GENERAL RESET & BASE STYLES
+   ========================================= */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f4f7f6;
@@ -12,8 +14,16 @@ header {
     margin-bottom: 30px;
 }
 
-/* The Grid Layout */
-/* This will create cards that automatically wrap based on screen size */
+/* Style for the active page link */
+.main-nav a.active {
+    font-weight: bold;
+    color: #004b87; 
+    text-decoration: underline;
+}
+
+/* =========================================
+   COUNTRY CARDS (GRID LAYOUT)
+   ========================================= */
 #countries-body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -22,7 +32,6 @@ header {
     padding: 0;
 }
 
-/* Styling for the country "cards" */
 .country-card {
     background: white;
     padding: 15px;
@@ -53,9 +62,12 @@ header {
     font-size: 0.9em;
 }
 
+/* =========================================
+   MATCH ROWS (SCHEDULE VIEW)
+   ========================================= */
 .match-row {
     display: flex;
-    justify-content: space-between; /* Pushes teams to edges, time to middle */
+    justify-content: space-between; 
     align-items: center;
     background: white;
     padding: 15px;
@@ -66,13 +78,13 @@ header {
 
 .team-left, .team-right {
     display: flex;
-    flex-direction: column; /* Stacks children vertically */
+    flex-direction: column; 
     align-items: center;
     gap: 10px;
     width: 120px;
-    padding: 10px; /* Added for the winner background to look good */
-    border-radius: 8px; /* Smooth corners */
-    box-sizing: border-box; /* Keeps the 120px width consistent */
+    padding: 10px; 
+    border-radius: 8px; 
+    box-sizing: border-box; 
 }
 
 .team-right { 
@@ -81,54 +93,61 @@ header {
 
 .team-flag {
     width: 30px;
-    height: auto;           /* Maintains the aspect ratio of the flag */
+    height: auto; 
 }
 
-/* Styling for the drafted family name */
 .family-name {
     font-size: 0.85em;
     color: #555;
     margin-top: 5px;
 }
 
-/* Apply the green background to the winning team container */
 .team-left.winner, 
 .team-right.winner {
     background-color: #83D475;
 }
 
-/* Grey background for finished matches */
 .match-row.status-finished {
     background-color: #94979A;
     border: 1px solid #7d8083;
 }
 
-/* Light blue background for live/paused matches */
 .match-row.status-live {
     background-color: #cce5ff;
     border: 1px solid #b8daff;
 }
 
-/* Styling for the Group Stage / Knockout Round label */
 .stage {
     font-size: 0.85em;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 2px;
-    color: #555555; /* Adjust to match your theme */
-    font-weight: 600; /* Optional: makes it stand out slightly */
+    color: #555555; 
+    font-weight: 600; 
 }
 
-/* Style for the active page link */
-.main-nav a.active {
-    font-weight: bold;
-    color: #004b87; /* Make this match your brand color */
-    text-decoration: underline;
+/* =========================================
+   STANDINGS TABLE
+   ========================================= */
+#standings-container {
+    max-width: 1000px; 
+    margin: 0 auto; 
+    padding: 0 20px;
 }
 
-/* --- Standings Table Styles --- */
+#standings-container h3 {
+    background: #e9ecef;
+    padding: 10px 15px;
+    margin: 25px 0 10px 0;
+    border-radius: 5px;
+    color: #495057;
+    font-size: 1.2em;
+    border-left: 5px solid #007bff;
+}
+
 .standings-table {
     width: 100%;
+    margin-bottom: 30px;
     border-collapse: collapse;
     background: white;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -164,35 +183,13 @@ header {
     transition: background 0.2s;
 }
 
-/* Ensure container fits nicely within your existing layout */
-#standings-container {
-    max-width: 1000px; 
-    margin: 0 auto; 
-    padding: 0 20px;
-}
-
-#standings-container h3 {
-    background: #e9ecef;
-    padding: 10px 15px;
-    margin: 25px 0 10px 0;
-    border-radius: 5px;
-    color: #495057;
-    font-size: 1.2em;
-    border-left: 5px solid #007bff;
-}
-
-/* Improve table spacing */
-.standings-table {
-    margin-bottom: 30px;
-    width: 100%;
-}
-
-/* --- Collapsible Date Header Styles --- */
+/* =========================================
+   COLLAPSIBLE DATE HEADERS
+   ========================================= */
 details.date-group {
     margin-bottom: 20px;
 }
 
-/* Style the summary element to look like our previous header */
 summary.date-header {
     background: #e9ecef;
     padding: 10px 15px;
@@ -202,25 +199,21 @@ summary.date-header {
     font-size: 1.2em;
     font-weight: bold;
     border-left: 5px solid #007bff;
-    cursor: pointer; /* Turns the mouse into a hand to indicate it's clickable */
-    outline: none; /* Removes the default focus outline */
+    cursor: pointer; 
+    outline: none; 
 }
 
-/* Slight color change when hovering over the header */
 summary.date-header:hover {
     background: #e2e6ea;
 }
 
-/* Removes top margin from the very first date header */
 #schedule-container details:first-child summary {
     margin-top: 0;
 }
 
 /* =========================================
-   KNOCKOUT VERTICAL VIEW STYLES
+   KNOCKOUT VERTICAL VIEW
    ========================================= */
-
-/* Container for each distinct knockout round (e.g., Round of 16) */
 .round-group {
     background: #ffffff;
     padding: 15px 20px;
@@ -229,7 +222,6 @@ summary.date-header:hover {
     margin-bottom: 30px;
 }
 
-/* The clickable summary header for the round */
 .round-summary {
     cursor: pointer;
     outline: none;
@@ -245,7 +237,6 @@ summary.date-header:hover {
     color: #004b87;
 }
 
-/* Placeholder for when a team isn't decided yet */
 .team-flag-placeholder {
     width: 30px;
     height: 20px;
@@ -255,10 +246,8 @@ summary.date-header:hover {
 }
 
 /* =========================================
-   SPLIT TOURNAMENT BRACKET VIEW STYLES
+   SPLIT TOURNAMENT BRACKET VIEW
    ========================================= */
-
-/* The main container holding all three sections */
 .split-bracket-wrapper {
     display: flex;
     justify-content: center;
@@ -266,15 +255,50 @@ summary.date-header:hover {
     gap: 40px;
     overflow-x: auto;
     padding: 20px 0;
+    
+    /* DRAG TO SCROLL STYLES */
+    cursor: grab;
+    scroll-behavior: smooth; 
 }
 
-/* Container for the Left and Right side columns */
+.split-bracket-wrapper.active-drag {
+    cursor: grabbing;
+}
+
+.split-bracket-wrapper.active-drag .bracket-match-box,
+.split-bracket-wrapper.active-drag h2,
+.split-bracket-wrapper.active-drag h3,
+.split-bracket-wrapper.active-drag span {
+    user-select: none;
+}
+
+/* CUSTOM DESKTOP SCROLLBAR */
+.split-bracket-wrapper::-webkit-scrollbar {
+    height: 12px; 
+}
+
+.split-bracket-wrapper::-webkit-scrollbar-track {
+    background: #e9ecef; 
+    border-radius: 10px;
+    margin: 0 20px; 
+}
+
+.split-bracket-wrapper::-webkit-scrollbar-thumb {
+    background: #adb5bd; 
+    border-radius: 10px;
+    border: 2px solid #e9ecef; 
+}
+
+.split-bracket-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #6c757d; 
+}
+
+/* BRACKET LAYOUT SECTIONS */
 .bracket-side {
     display: flex;
     gap: 20px;
 }
 
-/* Container for the Center (Final & 3rd Place) */
 .bracket-center {
     display: flex;
     flex-direction: column;
@@ -283,7 +307,6 @@ summary.date-header:hover {
     min-width: 250px;
 }
 
-/* Special styling for the Championship Match box */
 .championship-wrapper {
     border: 2px solid #ffd700;
     border-radius: 8px;
@@ -298,7 +321,6 @@ summary.date-header:hover {
     margin: 0 0 15px 0;
 }
 
-/* Special styling for the Third Place Match box */
 .third-place-wrapper {
     margin-top: 20px;
 }
@@ -313,30 +335,19 @@ summary.date-header:hover {
 /* =========================================
    GENERAL BRACKET BOX ELEMENTS
    ========================================= */
-
-/* Container for horizontal scrolling */
-.bracket-layout {
-    display: flex;
-    gap: 30px;
-    overflow-x: auto;
-    padding-bottom: 20px; 
-}
-
-/* Each vertical column (Round of 32, Round of 16, etc.) */
 .bracket-column {
     display: flex;
     flex-direction: column;
-    /* NOTE: Removed gap: 15px here so headers sit flush at the top */
     min-width: 220px; 
 }
 
-/* NEW: The wrapper for the matches */
+/* Wraps the matches inside the column to perfectly auto-align vertical spacing */
 .bracket-matches {
     display: flex;
     flex-direction: column;
-    justify-content: space-around; /* Centers the games perfectly between rounds */
-    flex-grow: 1; /* Fills the rest of the column height below the header */
-    gap: 15px; /* Minimum gap for responsive sizes */
+    justify-content: space-around; 
+    flex-grow: 1; 
+    gap: 15px; 
 }
 
 .bracket-stage-header {
@@ -348,13 +359,23 @@ summary.date-header:hover {
     border-bottom: 2px solid #ddd;
 }
 
-/* The actual match card in the bracket */
 .bracket-match-box {
     border: 1px solid #ddd;
     padding: 10px;
     border-radius: 5px;
     background: #fff;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.bracket-match-time {
+    font-size: 0.75em;
+    color: #666;
+    text-align: center;
+    margin-bottom: 8px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #eee;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .bracket-team {
@@ -369,7 +390,6 @@ summary.date-header:hover {
     margin-bottom: 0;
 }
 
-/* Wrap the flag and team name together */
 .bracket-team > div {
     display: flex;
     align-items: center;
@@ -398,16 +418,4 @@ summary.date-header:hover {
     padding: 2px 8px;
     border-radius: 3px;
     color: #333;
-}
-
-/* Styling for the date and time inside the bracket box */
-.bracket-match-time {
-    font-size: 0.75em;
-    color: #666;
-    text-align: center;
-    margin-bottom: 8px;
-    padding-bottom: 5px;
-    border-bottom: 1px solid #eee;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
 }
