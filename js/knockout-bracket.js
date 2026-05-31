@@ -83,7 +83,7 @@ onValue(ref(db), (snapshot) => {
         }
     });
 
-    // --- UPDATE: Sort array based on the bracket structural layout instead of date ---
+    // --- SORT ARRAY BY BRACKET STRUCTURAL LAYOUT ---
     const getMatchOrder = (id) => {
         if (leftSideMatchIds.includes(id)) return leftSideMatchIds.indexOf(id);
         if (rightSideMatchIds.includes(id)) return rightSideMatchIds.indexOf(id);
@@ -126,7 +126,7 @@ onValue(ref(db), (snapshot) => {
         const homeFlagHtml = match.homeFlag ? `<img src="${match.homeFlag}" class="bracket-flag" alt="">` : `<div class="bracket-flag-placeholder"></div>`;
         const awayFlagHtml = match.awayFlag ? `<img src="${match.awayFlag}" class="bracket-flag" alt="">` : `<div class="bracket-flag-placeholder"></div>`;
 
-        // --- Using the provided Date and Time Formatting logic ---
+        // Format Date & Time
         const matchDateString = match.date || '';
         let datePart = 'TBD';
         let timePart = 'TBD';
@@ -147,7 +147,6 @@ onValue(ref(db), (snapshot) => {
                 hour12: true
             });
         } else if (matchDateString) {
-            // Fallback for strings that don't parse as clean dates
             const parts = matchDateString.split(' ');
             if (parts[0]) datePart = parts[0];
             if (parts[1]) timePart = parts[1].substring(0, 5);
@@ -156,7 +155,6 @@ onValue(ref(db), (snapshot) => {
         const dateTimeDisplay = (datePart !== 'TBD' || timePart !== 'TBD') 
             ? `${datePart} <br> ${timePart}` 
             : 'Date TBD';
-        // -----------------------------------------------------------------
 
         return `
             <div class="bracket-match-box">
@@ -183,15 +181,14 @@ onValue(ref(db), (snapshot) => {
         if (!matches || matches.length === 0) return '';
         const displayTitle = stageDisplayNames[stageKey] || stageKey;
         
-        // Start the column and add the header
         let colHtml = `<div class="bracket-column"><h3 class="bracket-stage-header">${displayTitle}</h3>`;
         
-        // NEW: Add a wrapper specifically for the matches to allow flexbox spacing magic
+        // Wrapper for matches to allow flexbox spacing magic
         colHtml += `<div class="bracket-matches">`;
         matches.forEach(match => { colHtml += createMatchHTML(match); });
-        colHtml += `</div>`; // Close bracket-matches
+        colHtml += `</div>`; 
         
-        colHtml += `</div>`; // Close bracket-column
+        colHtml += `</div>`; 
         return colHtml;
     };
 
@@ -207,7 +204,6 @@ onValue(ref(db), (snapshot) => {
 
     // CENTER: Finals & Third Place
     htmlOutput += `<div class="bracket-center">`;
-    
     if (bracketData.center['FINAL'].length > 0) {
         htmlOutput += `
             <div class="championship-wrapper">
@@ -227,14 +223,47 @@ onValue(ref(db), (snapshot) => {
     }
     htmlOutput += `</div>`;
 
-    // RIGHT SIDE: Rendered in reverse order (SF <- QF <- R16 <- R32)
+    // RIGHT SIDE: SF <- QF <- R16 <- R32
     htmlOutput += `<div class="bracket-side right-side">`;
     ['SEMI_FINALS', 'QUARTER_FINALS', 'LAST_16', 'LAST_32'].forEach(stage => {
         htmlOutput += createColumnHTML(bracketData.right[stage], stage);
     });
     htmlOutput += `</div>`;
 
-    htmlOutput += `</div>`; // Close split-bracket-wrapper
+    htmlOutput += `</div>`; 
 
     container.innerHTML = htmlOutput;
+
+    // --- 4. ENABLE DESKTOP DRAG-TO-SCROLL ---
+    const slider = document.querySelector('.split-bracket-wrapper');
+    if (slider) {
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        slider.addEventListener('mousedown', (e) => {
+            isDown = true;
+            slider.classList.add('active-drag');
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+        });
+
+        slider.addEventListener('mouseleave', () => {
+            isDown = false;
+            slider.classList.remove('active-drag');
+        });
+
+        slider.addEventListener('mouseup', () => {
+            isDown = false;
+            slider.classList.remove('active-drag');
+        });
+
+        slider.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault(); 
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 1.5; // Scroll speed multiplier
+            slider.scrollLeft = scrollLeft - walk;
+        });
+    }
 });
