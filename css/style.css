@@ -255,87 +255,6 @@ summary.date-header:hover {
 }
 
 /* =========================================
-   TOURNAMENT BRACKET VIEW STYLES
-   ========================================= */
-
-/* Container for horizontal scrolling */
-.bracket-layout {
-    display: flex;
-    gap: 30px;
-    overflow-x: auto;
-    padding-bottom: 20px; /* Leaves room for the horizontal scrollbar */
-}
-
-/* Each vertical column (Round of 32, Round of 16, etc.) */
-.bracket-column {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    min-width: 220px; 
-}
-
-.bracket-stage-header {
-    text-align: center;
-    margin-bottom: 10px;
-    color: #004b87;
-    font-size: 1.1em;
-    padding-bottom: 5px;
-    border-bottom: 2px solid #ddd;
-}
-
-/* The actual match card in the bracket */
-.bracket-match-box {
-    border: 1px solid #ddd;
-    padding: 10px;
-    border-radius: 5px;
-    background: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.bracket-team {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    font-size: 0.9em;
-}
-
-.bracket-team:last-child {
-    margin-bottom: 0;
-}
-
-/* Wrap the flag and team name together */
-.bracket-team > div {
-    display: flex;
-    align-items: center;
-    gap: 8px; 
-}
-
-.bracket-flag {
-    width: 20px;
-    height: 15px;
-    object-fit: cover;
-    border-radius: 2px;
-    border: 1px solid #eee;
-}
-
-.bracket-flag-placeholder {
-    width: 20px;
-    height: 15px;
-    background: #e9ecef;
-    border-radius: 2px;
-    border: 1px dashed #adb5bd;
-}
-
-.bracket-score {
-    font-weight: bold;
-    background: #f4f4f4;
-    padding: 2px 8px;
-    border-radius: 3px;
-    color: #333;
-}
-
-/* =========================================
    SPLIT TOURNAMENT BRACKET VIEW STYLES
    ========================================= */
 
@@ -395,12 +314,29 @@ summary.date-header:hover {
    GENERAL BRACKET BOX ELEMENTS
    ========================================= */
 
+/* Container for horizontal scrolling */
+.bracket-layout {
+    display: flex;
+    gap: 30px;
+    overflow-x: auto;
+    padding-bottom: 20px; 
+}
+
 /* Each vertical column (Round of 32, Round of 16, etc.) */
 .bracket-column {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    /* NOTE: Removed gap: 15px here so headers sit flush at the top */
     min-width: 220px; 
+}
+
+/* NEW: The wrapper for the matches */
+.bracket-matches {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around; /* Centers the games perfectly between rounds */
+    flex-grow: 1; /* Fills the rest of the column height below the header */
+    gap: 15px; /* Minimum gap for responsive sizes */
 }
 
 .bracket-stage-header {
@@ -475,4 +411,3 @@ summary.date-header:hover {
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
-
