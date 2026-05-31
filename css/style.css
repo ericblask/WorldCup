@@ -246,52 +246,56 @@ summary.date-header:hover {
 }
 
 /* =========================================
-   SPLIT TOURNAMENT BRACKET VIEW
+   SCROLLABLE WINDOW CONTAINER
    ========================================= */
-.split-bracket-wrapper {
-    display: flex;
-    justify-content: flex-start; /* FIX: Prevents left side from cutting off on desktop */
-    align-items: center;
-    gap: 40px;
-    overflow-x: auto;
-    padding: 20px; /* FIX: Adds breathing room so bracket doesn't hug screen edges */
-    margin: 0 auto; /* Centers the whole block if the screen is wider than the bracket */
-    
-    /* DRAG TO SCROLL STYLES */
+#bracket-container {
+    width: 100%;
+    overflow-x: auto; /* The scrolling happens here now */
     cursor: grab;
-    scroll-behavior: smooth; 
+    scroll-behavior: smooth;
 }
 
-.split-bracket-wrapper.active-drag {
+#bracket-container.active-drag {
     cursor: grabbing;
 }
 
-.split-bracket-wrapper.active-drag .bracket-match-box,
-.split-bracket-wrapper.active-drag h2,
-.split-bracket-wrapper.active-drag h3,
-.split-bracket-wrapper.active-drag span {
-    user-select: none;
+#bracket-container.active-drag * {
+    user-select: none; /* Prevents accidental text highlighting while dragging */
 }
 
 /* CUSTOM DESKTOP SCROLLBAR */
-.split-bracket-wrapper::-webkit-scrollbar {
+#bracket-container::-webkit-scrollbar {
     height: 12px; 
 }
 
-.split-bracket-wrapper::-webkit-scrollbar-track {
+#bracket-container::-webkit-scrollbar-track {
     background: #e9ecef; 
     border-radius: 10px;
     margin: 0 20px; 
 }
 
-.split-bracket-wrapper::-webkit-scrollbar-thumb {
+#bracket-container::-webkit-scrollbar-thumb {
     background: #adb5bd; 
     border-radius: 10px;
     border: 2px solid #e9ecef; 
 }
 
-.split-bracket-wrapper::-webkit-scrollbar-thumb:hover {
+#bracket-container::-webkit-scrollbar-thumb:hover {
     background: #6c757d; 
+}
+
+/* =========================================
+   SPLIT TOURNAMENT BRACKET VIEW (CANVAS)
+   ========================================= */
+.split-bracket-wrapper {
+    display: flex;
+    justify-content: center; /* Safely centers the bracket on huge screens */
+    align-items: center;
+    gap: 40px;
+    padding: 20px;
+    
+    /* THE MAGIC FIX: Forces the bracket to be its true width, preventing the left side from getting cut off */
+    min-width: max-content; 
 }
 
 /* BRACKET LAYOUT SECTIONS */
