@@ -250,7 +250,7 @@ summary.date-header:hover {
    ========================================= */
 #bracket-container {
     width: 100%;
-    overflow-x: auto; /* The scrolling happens here now */
+    overflow-x: auto; 
     cursor: grab;
     scroll-behavior: smooth;
 }
@@ -260,10 +260,9 @@ summary.date-header:hover {
 }
 
 #bracket-container.active-drag * {
-    user-select: none; /* Prevents accidental text highlighting while dragging */
+    user-select: none; 
 }
 
-/* CUSTOM DESKTOP SCROLLBAR */
 #bracket-container::-webkit-scrollbar {
     height: 12px; 
 }
@@ -289,16 +288,13 @@ summary.date-header:hover {
    ========================================= */
 .split-bracket-wrapper {
     display: flex;
-    justify-content: center; /* Safely centers the bracket on huge screens */
+    justify-content: center; 
     align-items: center;
     gap: 40px;
     padding: 20px;
-    
-    /* THE MAGIC FIX: Forces the bracket to be its true width, preventing the left side from getting cut off */
     min-width: max-content; 
 }
 
-/* BRACKET LAYOUT SECTIONS */
 .bracket-side {
     display: flex;
     gap: 20px;
@@ -346,7 +342,6 @@ summary.date-header:hover {
     min-width: 220px; 
 }
 
-/* Wraps the matches inside the column to perfectly auto-align vertical spacing */
 .bracket-matches {
     display: flex;
     flex-direction: column;
@@ -395,10 +390,28 @@ summary.date-header:hover {
     margin-bottom: 0;
 }
 
-.bracket-team > div {
+/* Wrap the flag and stacked names together */
+.bracket-team-info {
     display: flex;
     align-items: center;
-    gap: 8px; 
+    gap: 10px; 
+}
+
+/* Stacks the Team Name above the Family Name */
+.bracket-names {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.bracket-team-name {
+    font-weight: 500;
+}
+
+.bracket-family {
+    font-size: 0.75em;
+    color: #888;
+    margin-top: 2px;
 }
 
 .bracket-flag {
