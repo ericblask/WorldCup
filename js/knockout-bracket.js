@@ -182,9 +182,16 @@ onValue(ref(db), (snapshot) => {
     const createColumnHTML = (matches, stageKey) => {
         if (!matches || matches.length === 0) return '';
         const displayTitle = stageDisplayNames[stageKey] || stageKey;
+        
+        // Start the column and add the header
         let colHtml = `<div class="bracket-column"><h3 class="bracket-stage-header">${displayTitle}</h3>`;
+        
+        // NEW: Add a wrapper specifically for the matches to allow flexbox spacing magic
+        colHtml += `<div class="bracket-matches">`;
         matches.forEach(match => { colHtml += createMatchHTML(match); });
-        colHtml += `</div>`;
+        colHtml += `</div>`; // Close bracket-matches
+        
+        colHtml += `</div>`; // Close bracket-column
         return colHtml;
     };
 
