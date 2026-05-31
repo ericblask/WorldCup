@@ -16,7 +16,6 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getDatabase(app);
 
 // --- 1. DEFINE MATCH IDs FOR LEFT AND RIGHT SIDES ---
-// Matches the exact top-to-bottom visual layout from the CSV
 const leftSideMatchIds = [
     '537415', '537416', '537417', '537418', '537419', '537420', '537421', '537422', // Round of 32
     '537375', '537376', '537379', '537380', // Round of 16
@@ -31,7 +30,6 @@ const rightSideMatchIds = [
     '537388' // Semi-final
 ];
 
-// Map standard keys to user-friendly titles
 const stageDisplayNames = {
     'LAST_32': 'Round of 32',
     'LAST_16': 'Round of 16',
@@ -70,6 +68,7 @@ onValue(ref(db), (snapshot) => {
 
     const schedules = data.schedules;
     const results = data.results || {}; 
+    const drafts = data.drafts || {}; // Fetch drafts data for family names
 
     // Extract knockout matches
     let matchArray = [];
@@ -83,7 +82,6 @@ onValue(ref(db), (snapshot) => {
         }
     });
 
-    // --- SORT ARRAY BY BRACKET STRUCTURAL LAYOUT ---
     const getMatchOrder = (id) => {
         if (leftSideMatchIds.includes(id)) return leftSideMatchIds.indexOf(id);
         if (rightSideMatchIds.includes(id)) return rightSideMatchIds.indexOf(id);
@@ -92,7 +90,6 @@ onValue(ref(db), (snapshot) => {
 
     matchArray.sort((a, b) => getMatchOrder(a.matchId) - getMatchOrder(b.matchId));
 
-    // --- 2. ORGANIZE DATA INTO LEFT, CENTER, AND RIGHT ---
     const bracketData = {
         left: { 'LAST_32': [], 'LAST_16': [], 'QUARTER_FINALS': [], 'SEMI_FINALS': [] },
         right: { 'LAST_32': [], 'LAST_16': [], 'QUARTER_FINALS': [], 'SEMI_FINALS': [] },
@@ -109,7 +106,6 @@ onValue(ref(db), (snapshot) => {
         } else if (rightSideMatchIds.includes(match.matchId)) {
             bracketData.right[stage].push(match);
         } else {
-            // Fallback for missing/extra matches
             if (bracketData.left[stage].length <= bracketData.right[stage].length) {
                 bracketData.left[stage].push(match);
             } else {
@@ -118,6 +114,21 @@ onValue(ref(db), (snapshot) => {
         }
     });
 
+    // --- FUNCTION TO GET DRAFTED FAMILY NAME ---
+    const getFamilyByName = (teamName) => {
+        if (!teamName || teamName === 'TBD') return '';
+        for (const famKey in drafts) {
+            const familyData = drafts[famKey];
+            if (familyData && familyData.countries) {
+                const draftedCountries = Object.values(familyData.countries);
+                for (const country of draftedCountries) {
+                    if (country.name === teamName) return familyData.name || ''; 
+                }
+            }
+        }
+        return ''; 
+    };
+
     const createMatchHTML = (match) => {
         const matchResult = results[match.matchId] || {};
         const homeScore = matchResult.homeScore ?? '-';
@@ -125,6 +136,10 @@ onValue(ref(db), (snapshot) => {
 
         const homeFlagHtml = match.homeFlag ? `<img src="${match.homeFlag}" class="bracket-flag" alt="">` : `<div class="bracket-flag-placeholder"></div>`;
         const awayFlagHtml = match.awayFlag ? `<img src="${match.awayFlag}" class="bracket-flag" alt="">` : `<div class="bracket-flag-placeholder"></div>`;
+
+        // Fetch family names
+        const homeFamily = getFamilyByName(match.homeTeam);
+        const awayFamily = getFamilyByName(match.awayTeam);
 
         // Format Date & Time
         const matchDateString = match.date || '';
@@ -140,7 +155,6 @@ onValue(ref(db), (snapshot) => {
                 day: 'numeric',
                 year: 'numeric'
             });
-            
             timePart = parsedDate.toLocaleTimeString('en-US', {
                 hour: 'numeric',
                 minute: '2-digit',
@@ -160,16 +174,22 @@ onValue(ref(db), (snapshot) => {
             <div class="bracket-match-box">
                 <div class="bracket-match-time">${dateTimeDisplay}</div>
                 <div class="bracket-team">
-                    <div>
+                    <div class="bracket-team-info">
                         ${homeFlagHtml}
-                        <span>${match.homeTeam || 'TBD'}</span>
+                        <div class="bracket-names">
+                            <span class="bracket-team-name">${match.homeTeam || 'TBD'}</span>
+                            ${homeFamily ? `<span class="bracket-family">${homeFamily}</span>` : ''}
+                        </div>
                     </div>
                     <span class="bracket-score">${homeScore}</span>
                 </div>
                 <div class="bracket-team">
-                    <div>
+                    <div class="bracket-team-info">
                         ${awayFlagHtml}
-                        <span>${match.awayTeam || 'TBD'}</span>
+                        <div class="bracket-names">
+                            <span class="bracket-team-name">${match.awayTeam || 'TBD'}</span>
+                            ${awayFamily ? `<span class="bracket-family">${awayFamily}</span>` : ''}
+                        </div>
                     </div>
                     <span class="bracket-score">${awayScore}</span>
                 </div>
@@ -182,27 +202,22 @@ onValue(ref(db), (snapshot) => {
         const displayTitle = stageDisplayNames[stageKey] || stageKey;
         
         let colHtml = `<div class="bracket-column"><h3 class="bracket-stage-header">${displayTitle}</h3>`;
-        
-        // Wrapper for matches to allow flexbox spacing magic
         colHtml += `<div class="bracket-matches">`;
         matches.forEach(match => { colHtml += createMatchHTML(match); });
-        colHtml += `</div>`; 
-        
-        colHtml += `</div>`; 
+        colHtml += `</div></div>`; 
         return colHtml;
     };
 
-    // --- 3. BUILD THE SPLIT BRACKET HTML ---
     let htmlOutput = `<div class="split-bracket-wrapper">`;
 
-    // LEFT SIDE: R32 -> R16 -> QF -> SF
+    // LEFT SIDE
     htmlOutput += `<div class="bracket-side left-side">`;
     ['LAST_32', 'LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS'].forEach(stage => {
         htmlOutput += createColumnHTML(bracketData.left[stage], stage);
     });
     htmlOutput += `</div>`;
 
-    // CENTER: Finals & Third Place
+    // CENTER
     htmlOutput += `<div class="bracket-center">`;
     if (bracketData.center['FINAL'].length > 0) {
         htmlOutput += `
@@ -212,7 +227,6 @@ onValue(ref(db), (snapshot) => {
             </div>
         `;
     }
-    
     if (bracketData.center['THIRD_PLACE'].length > 0) {
         htmlOutput += `
             <div class="third-place-wrapper">
@@ -223,19 +237,16 @@ onValue(ref(db), (snapshot) => {
     }
     htmlOutput += `</div>`;
 
-    // RIGHT SIDE: SF <- QF <- R16 <- R32
+    // RIGHT SIDE
     htmlOutput += `<div class="bracket-side right-side">`;
     ['SEMI_FINALS', 'QUARTER_FINALS', 'LAST_16', 'LAST_32'].forEach(stage => {
         htmlOutput += createColumnHTML(bracketData.right[stage], stage);
     });
-    htmlOutput += `</div>`;
-
-    htmlOutput += `</div>`; 
+    htmlOutput += `</div></div>`; 
 
     container.innerHTML = htmlOutput;
 
-    // --- 4. ENABLE DESKTOP DRAG-TO-SCROLL ---
-    // Targets the parent bracket-container so left side is never cut off
+    // ENABLE DESKTOP DRAG-TO-SCROLL
     const slider = document.getElementById('bracket-container');
     if (slider) {
         let isDown = false;
@@ -248,22 +259,19 @@ onValue(ref(db), (snapshot) => {
             startX = e.pageX - slider.offsetLeft;
             scrollLeft = slider.scrollLeft;
         });
-
         slider.addEventListener('mouseleave', () => {
             isDown = false;
             slider.classList.remove('active-drag');
         });
-
         slider.addEventListener('mouseup', () => {
             isDown = false;
             slider.classList.remove('active-drag');
         });
-
         slider.addEventListener('mousemove', (e) => {
             if (!isDown) return;
             e.preventDefault(); 
             const x = e.pageX - slider.offsetLeft;
-            const walk = (x - startX) * 1.5; // Scroll speed multiplier
+            const walk = (x - startX) * 1.5; 
             slider.scrollLeft = scrollLeft - walk;
         });
     }
