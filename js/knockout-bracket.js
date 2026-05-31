@@ -16,16 +16,17 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getDatabase(app);
 
 // --- 1. DEFINE MATCH IDs FOR LEFT AND RIGHT SIDES ---
+// Matches the exact top-to-bottom visual layout from the CSV
 const leftSideMatchIds = [
     '537415', '537416', '537417', '537418', '537419', '537420', '537421', '537422', // Round of 32
-    '537375', '537376', '537381', '537382', // Round of 16
+    '537375', '537376', '537379', '537380', // Round of 16
     '537383', '537384', // Quarter-finals
     '537387' // Semi-final
 ];
 
 const rightSideMatchIds = [
     '537423', '537424', '537425', '537426', '537427', '537428', '537429', '537430', // Round of 32
-    '537377', '537378', '537379', '537380', // Round of 16
+    '537377', '537378', '537381', '537382', // Round of 16
     '537385', '537386', // Quarter-finals
     '537388' // Semi-final
 ];
@@ -82,11 +83,14 @@ onValue(ref(db), (snapshot) => {
         }
     });
 
-    matchArray.sort((a, b) => {
-        const dateA = a.date ? new Date(a.date) : new Date(0);
-        const dateB = b.date ? new Date(b.date) : new Date(0);
-        return dateA - dateB;
-    });
+    // --- UPDATE: Sort array based on the bracket structural layout instead of date ---
+    const getMatchOrder = (id) => {
+        if (leftSideMatchIds.includes(id)) return leftSideMatchIds.indexOf(id);
+        if (rightSideMatchIds.includes(id)) return rightSideMatchIds.indexOf(id);
+        return 999; 
+    };
+
+    matchArray.sort((a, b) => getMatchOrder(a.matchId) - getMatchOrder(b.matchId));
 
     // --- 2. ORGANIZE DATA INTO LEFT, CENTER, AND RIGHT ---
     const bracketData = {
@@ -105,6 +109,7 @@ onValue(ref(db), (snapshot) => {
         } else if (rightSideMatchIds.includes(match.matchId)) {
             bracketData.right[stage].push(match);
         } else {
+            // Fallback for missing/extra matches
             if (bracketData.left[stage].length <= bracketData.right[stage].length) {
                 bracketData.left[stage].push(match);
             } else {
@@ -121,7 +126,7 @@ onValue(ref(db), (snapshot) => {
         const homeFlagHtml = match.homeFlag ? `<img src="${match.homeFlag}" class="bracket-flag" alt="">` : `<div class="bracket-flag-placeholder"></div>`;
         const awayFlagHtml = match.awayFlag ? `<img src="${match.awayFlag}" class="bracket-flag" alt="">` : `<div class="bracket-flag-placeholder"></div>`;
 
-        // --- NEW: Using the provided Date and Time Formatting logic ---
+        // --- Using the provided Date and Time Formatting logic ---
         const matchDateString = match.date || '';
         let datePart = 'TBD';
         let timePart = 'TBD';
