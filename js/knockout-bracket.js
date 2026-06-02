@@ -68,7 +68,7 @@ onValue(ref(db), (snapshot) => {
 
     const schedules = data.schedules;
     const results = data.results || {}; 
-    const drafts = data.drafts || {}; // Fetch drafts data for family names
+    const drafts = data.draft || {}; // Fetch drafts data for family names
 
     // Extract knockout matches
     let matchArray = [];
