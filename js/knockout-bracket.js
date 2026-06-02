@@ -15,19 +15,20 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getDatabase(app);
 
-// --- 1. DEFINE MATCH IDs FOR LEFT AND RIGHT SIDES ---
-const leftSideMatchIds = [
-    '537415', '537416', '537417', '537418', '537419', '537420', '537421', '537422', // Round of 32
-    '537375', '537376', '537379', '537380', // Round of 16
-    '537383', '537384', // Quarter-finals
-    '537387' // Semi-final
+// --- 1. DEFINE MATCH NUMBERS FOR LEFT AND RIGHT SIDES ---
+// These are extracted directly from the provided bracket layout spreadsheet
+const leftSideMatchNumbers = [
+    73, 76, 74, 75, 78, 77, 79, 80, // Round of 32
+    90, 89, 91, 92,                 // Round of 16
+    97, 98,                         // Quarter-finals
+    101                             // Semi-final
 ];
 
-const rightSideMatchIds = [
-    '537423', '537424', '537425', '537426', '537427', '537428', '537429', '537430', // Round of 32
-    '537377', '537378', '537381', '537382', // Round of 16
-    '537385', '537386', // Quarter-finals
-    '537388' // Semi-final
+const rightSideMatchNumbers = [
+    82, 81, 84, 83, 85, 88, 86, 87, // Round of 32
+    93, 94, 95, 96,                 // Round of 16
+    99, 100,                        // Quarter-finals
+    102                             // Semi-final
 ];
 
 const stageDisplayNames = {
@@ -82,13 +83,14 @@ onValue(ref(db), (snapshot) => {
         }
     });
 
-    const getMatchOrder = (id) => {
-        if (leftSideMatchIds.includes(id)) return leftSideMatchIds.indexOf(id);
-        if (rightSideMatchIds.includes(id)) return rightSideMatchIds.indexOf(id);
+    // Sort order based on the layout's match numbers instead of matchId
+    const getMatchOrder = (matchNum) => {
+        if (leftSideMatchNumbers.includes(matchNum)) return leftSideMatchNumbers.indexOf(matchNum);
+        if (rightSideMatchNumbers.includes(matchNum)) return rightSideMatchNumbers.indexOf(matchNum);
         return 999; 
     };
 
-    matchArray.sort((a, b) => getMatchOrder(a.matchId) - getMatchOrder(b.matchId));
+    matchArray.sort((a, b) => getMatchOrder(a.matchNumber) - getMatchOrder(b.matchNumber));
 
     const bracketData = {
         left: { 'LAST_32': [], 'LAST_16': [], 'QUARTER_FINALS': [], 'SEMI_FINALS': [] },
@@ -98,14 +100,17 @@ onValue(ref(db), (snapshot) => {
 
     matchArray.forEach(match => {
         const stage = match.normalizedStage;
+        const matchNum = match.matchNumber;
         
-        if (stage === 'FINAL' || stage === 'THIRD_PLACE') {
+        // Push based on match number arrays rather than random Firebase IDs
+        if (stage === 'FINAL' || stage === 'THIRD_PLACE' || matchNum === 104 || matchNum === 103) {
             bracketData.center[stage].push(match);
-        } else if (leftSideMatchIds.includes(match.matchId)) {
+        } else if (leftSideMatchNumbers.includes(matchNum)) {
             bracketData.left[stage].push(match);
-        } else if (rightSideMatchIds.includes(match.matchId)) {
+        } else if (rightSideMatchNumbers.includes(matchNum)) {
             bracketData.right[stage].push(match);
         } else {
+            // Fallback for edge cases
             if (bracketData.left[stage].length <= bracketData.right[stage].length) {
                 bracketData.left[stage].push(match);
             } else {
@@ -222,7 +227,7 @@ onValue(ref(db), (snapshot) => {
 
     // CENTER
     htmlOutput += `<div class="bracket-center">`;
-    if (bracketData.center['FINAL'].length > 0) {
+    if (bracketData.center['FINAL'] && bracketData.center['FINAL'].length > 0) {
         htmlOutput += `
             <div class="championship-wrapper">
                 <h2>World Cup Final</h2>
@@ -230,7 +235,7 @@ onValue(ref(db), (snapshot) => {
             </div>
         `;
     }
-    if (bracketData.center['THIRD_PLACE'].length > 0) {
+    if (bracketData.center['THIRD_PLACE'] && bracketData.center['THIRD_PLACE'].length > 0) {
         htmlOutput += `
             <div class="third-place-wrapper">
                 <h3>Third Place Play-off</h3>
