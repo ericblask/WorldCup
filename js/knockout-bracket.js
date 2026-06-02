@@ -172,7 +172,10 @@ onValue(ref(db), (snapshot) => {
 
         return `
             <div class="bracket-match-box">
-                <div class="bracket-match-time">${dateTimeDisplay}</div>
+                <div class="bracket-match-time">
+                    ${dateTimeDisplay} <br> 
+                    <span style="color: #d9534f; font-weight: bold;">(Match #${match.matchNumber || '?'})</span>
+                </div>
                 <div class="bracket-team">
                     <div class="bracket-team-info">
                         ${homeFlagHtml}
