@@ -63,12 +63,7 @@ onValue(ref(db), (snapshot) => {
 
     const schedules = data.schedules;
     const results = data.results || {}; 
-
-    // Read the custom data attribute from the container (defaults to 'draft' if missing)
-    const draftNodeName = container.dataset.draftNode || 'draft';
-    // Dynamically fetch either data.draft or data.workdraft based on the HTML
-    const drafts = data[draftNodeName] || {};
-    
+    const drafts = data.draft || {};
 
     const getFamilyByName = (teamName) => {
         for (const famKey in drafts) {
@@ -108,7 +103,6 @@ onValue(ref(db), (snapshot) => {
         }
     });
 
-    // Print to developer console so you know exactly what the script found
     console.log(`Knockout Script: Found ${matchArray.length} total matches.`);
     console.log(`Knockout Script: Filtered down to ${knockoutMatches.length} KNOCKOUT matches.`);
 
@@ -130,12 +124,13 @@ onValue(ref(db), (snapshot) => {
         const matchesInRound = roundsMap.get(roundKey);
         const displayTitle = stageDisplayNames[roundKey] || roundKey;
         
+        // Removed the padding-left: 15px; from the round-content div below
         htmlOutput += `
             <details class="round-group" open style="margin-bottom: 1.5rem;">
                 <summary class="round-summary" style="cursor: pointer; padding: 5px 0;">
                     <h2 class="round-header" style="display: inline; vertical-align: middle; margin-left: 5px;">${displayTitle}</h2>
                 </summary>
-                <div class="round-content" style="padding-left: 15px; margin-top: 10px;">
+                <div class="round-content" style="margin-top: 10px;">
         `;
         
         let currentDateHeader = ''; 
