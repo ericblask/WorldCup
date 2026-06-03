@@ -11,34 +11,23 @@ const firebaseConfig = {
     appId: "1:1089995362453:web:6cb7fb7f6666bad07c0b9c"
 };
 
-// Prevent "Firebase App already exists" error safely
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getDatabase(app);
 
-// --- 1. DEFINE MATCH NUMBERS FOR TOP AND BOTTOM HALVES ---
-// Swapped from Left/Right arrays to Top/Bottom concept
-const topHalfMatchNumbers = [
-    73, 76, 74, 75, 78, 77, 79, 80, // Round of 32
-    90, 89, 91, 92,                 // Round of 16
-    97, 98,                         // Quarter-finals
-    101                             // Semi-final
+// --- MASTER MATCH ORDER ---
+// Matches are ordered by round, with the bottom half appended to the top half
+const orderedMatchNumbers = [
+    // Round of 32
+    73, 76, 74, 75, 78, 77, 79, 80, 82, 81, 84, 83, 85, 88, 86, 87,
+    // Round of 16
+    90, 89, 91, 92, 93, 94, 95, 96,
+    // Quarter-finals
+    97, 98, 99, 100,
+    // Semi-finals
+    101, 102,
+    // Third Place, Final
+    103, 104
 ];
-
-const bottomHalfMatchNumbers = [
-    82, 81, 84, 83, 85, 88, 86, 87, // Round of 32
-    93, 94, 95, 96,                 // Round of 16
-    99, 100,                        // Quarter-finals
-    102                             // Semi-final
-];
-
-const stageDisplayNames = {
-    'LAST_32': 'Round of 32',
-    'LAST_16': 'Round of 16',
-    'QUARTER_FINALS': 'Quarter-Finals',
-    'SEMI_FINALS': 'Semi-Finals',
-    'FINAL': 'World Cup Final',
-    'THIRD_PLACE': 'Third Place'
-};
 
 const normalizeStage = (stageStr) => {
     if (!stageStr) return 'UNKNOWN';
@@ -82,37 +71,28 @@ onValue(ref(db), (snapshot) => {
         }
     });
 
-    const getMatchOrder = (matchNum) => {
-        if (topHalfMatchNumbers.includes(matchNum)) return topHalfMatchNumbers.indexOf(matchNum);
-        if (bottomHalfMatchNumbers.includes(matchNum)) return bottomHalfMatchNumbers.indexOf(matchNum);
-        return 999; 
-    };
+    // Sort entirely by the master order list
+    matchArray.sort((a, b) => {
+        const indexA = orderedMatchNumbers.indexOf(a.matchNumber);
+        const indexB = orderedMatchNumbers.indexOf(b.matchNumber);
+        return (indexA !== -1 ? indexA : 999) - (indexB !== -1 ? indexB : 999);
+    });
 
-    matchArray.sort((a, b) => getMatchOrder(a.matchNumber) - getMatchOrder(b.matchNumber));
-
-    // Update object keys to "top" and "bottom"
+    // Group matches into columns
     const bracketData = {
-        top: { 'LAST_32': [], 'LAST_16': [], 'QUARTER_FINALS': [], 'SEMI_FINALS': [] },
-        bottom: { 'LAST_32': [], 'LAST_16': [], 'QUARTER_FINALS': [], 'SEMI_FINALS': [] },
-        center: { 'FINAL': [], 'THIRD_PLACE': [] }
+        'LAST_32': [],
+        'LAST_16': [],
+        'QUARTER_FINALS': [],
+        'SEMI_FINALS': [],
+        'FINALS': [] // Contains both Third Place and Final
     };
 
     matchArray.forEach(match => {
         const stage = match.normalizedStage;
-        const matchNum = match.matchNumber;
-        
-        if (stage === 'FINAL' || stage === 'THIRD_PLACE' || matchNum === 104 || matchNum === 103) {
-            bracketData.center[stage].push(match);
-        } else if (topHalfMatchNumbers.includes(matchNum)) {
-            bracketData.top[stage].push(match);
-        } else if (bottomHalfMatchNumbers.includes(matchNum)) {
-            bracketData.bottom[stage].push(match);
-        } else {
-            if (bracketData.top[stage].length <= bracketData.bottom[stage].length) {
-                bracketData.top[stage].push(match);
-            } else {
-                bracketData.bottom[stage].push(match);
-            }
+        if (stage === 'FINAL' || stage === 'THIRD_PLACE') {
+            bracketData['FINALS'].push(match);
+        } else if (bracketData[stage]) {
+            bracketData[stage].push(match);
         }
     });
 
@@ -132,11 +112,10 @@ onValue(ref(db), (snapshot) => {
 
     const createMatchHTML = (match) => {
         const matchResult = results[match.matchId] || {};
-        const status = matchResult.status || 'Scheduled'; // Check if finished
+        const status = matchResult.status || 'Scheduled';
         const homeScore = matchResult.homeScore ?? '-';
         const awayScore = matchResult.awayScore ?? '-';
 
-        // Integrate Winner shading logic!
         let homeWinnerClass = '';
         let awayWinnerClass = '';
 
@@ -166,29 +145,24 @@ onValue(ref(db), (snapshot) => {
         const parsedDate = new Date(matchDateString);
         
         if (!isNaN(parsedDate.getTime())) {
-            datePart = parsedDate.toLocaleDateString('en-US', {
-                weekday: 'long', 
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric'
-            });
-            timePart = parsedDate.toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true
-            });
+            datePart = parsedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            timePart = parsedDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
         } else if (matchDateString) {
             const parts = matchDateString.split(' ');
             if (parts[0]) datePart = parts[0];
             if (parts[1]) timePart = parts[1].substring(0, 5);
         }
 
-        const dateTimeDisplay = (datePart !== 'TBD' || timePart !== 'TBD') 
-            ? `${datePart} <br> ${timePart}` 
-            : 'Date TBD';
+        const dateTimeDisplay = (datePart !== 'TBD' || timePart !== 'TBD') ? `${datePart} - ${timePart}` : 'Date TBD';
+        
+        // Add a small label if this is specifically the Final or Third Place match
+        let titleLabel = '';
+        if (match.normalizedStage === 'FINAL') titleLabel = `<div style="font-weight: bold; color: #004b87; margin-bottom: 3px; text-align: center;">World Cup Final</div>`;
+        if (match.normalizedStage === 'THIRD_PLACE') titleLabel = `<div style="font-weight: bold; color: #555; margin-bottom: 3px; text-align: center;">Third Place Play-off</div>`;
 
         return `
-            <div class="bracket-match-box">
+            <div class="bracket-match-box" style="margin-bottom: 15px;">
+                ${titleLabel}
                 <div class="bracket-match-time">
                     ${dateTimeDisplay} <br> 
                     <span style="color: #d9534f; font-weight: bold;">(Match #${match.matchNumber || '?'})</span>
@@ -217,64 +191,34 @@ onValue(ref(db), (snapshot) => {
         `;
     };
 
-    const createColumnHTML = (matches, stageKey) => {
-        if (!matches || matches.length === 0) return '';
-        const displayTitle = stageDisplayNames[stageKey] || stageKey;
-        
-        let colHtml = `<div class="bracket-column"><h3 class="bracket-stage-header">${displayTitle}</h3>`;
-        colHtml += `<div class="bracket-matches">`;
-        matches.forEach(match => { colHtml += createMatchHTML(match); });
-        colHtml += `</div></div>`; 
-        return colHtml;
-    };
+    // Columns configuration to render left-to-right
+    const stagesInOrder = [
+        { key: 'LAST_32', title: 'Round of 32' },
+        { key: 'LAST_16', title: 'Round of 16' },
+        { key: 'QUARTER_FINALS', title: 'Quarter-Finals' },
+        { key: 'SEMI_FINALS', title: 'Semi-Finals' },
+        { key: 'FINALS', title: 'Finals' }
+    ];
 
-    // Constructing the new Top/Bottom layout using inline flexbox
-    let htmlOutput = `<div class="vertical-bracket-wrapper" style="display: flex; flex-direction: row; gap: 40px; width: max-content; padding: 20px;">`;
+    let htmlOutput = `<div class="simple-bracket-wrapper" style="display: flex; flex-direction: row; gap: 30px; width: max-content; padding: 20px;">`;
 
-    // LEFT SECTION: Contains the Top and Bottom Halves stacked vertically
-    htmlOutput += `<div class="bracket-halves-container" style="display: flex; flex-direction: column; gap: 50px;">`;
-
-    // TOP HALF (Flows left to right: R32 -> R16 -> QF -> SF)
-    htmlOutput += `<div class="bracket-side top-side" style="display: flex; flex-direction: row; gap: 20px;">`;
-    ['LAST_32', 'LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS'].forEach(stage => {
-        htmlOutput += createColumnHTML(bracketData.top[stage], stage);
+    stagesInOrder.forEach(stageInfo => {
+        const matches = bracketData[stageInfo.key];
+        if (matches && matches.length > 0) {
+            htmlOutput += `<div class="bracket-column" style="display: flex; flex-direction: column; min-width: 260px;">`;
+            htmlOutput += `<h3 class="bracket-stage-header" style="text-align: center; border-bottom: 2px solid #ddd; padding-bottom: 10px; margin-bottom: 15px; position: sticky; top: 0; background: #f4f7f6; z-index: 2;">${stageInfo.title}</h3>`;
+            htmlOutput += `<div class="bracket-matches">`;
+            matches.forEach(match => {
+                htmlOutput += createMatchHTML(match);
+            });
+            htmlOutput += `</div></div>`;
+        }
     });
+
     htmlOutput += `</div>`;
-
-    // BOTTOM HALF (Flows left to right: R32 -> R16 -> QF -> SF)
-    htmlOutput += `<div class="bracket-side bottom-side" style="display: flex; flex-direction: row; gap: 20px;">`;
-    ['LAST_32', 'LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS'].forEach(stage => {
-        // Now it builds left to right same as the top half!
-        htmlOutput += createColumnHTML(bracketData.bottom[stage], stage);
-    });
-    htmlOutput += `</div>`;
-    
-    htmlOutput += `</div>`; // Close bracket-halves-container
-
-    // RIGHT SECTION: The Finals and Third Place
-    htmlOutput += `<div class="bracket-center finals-section" style="display: flex; flex-direction: column; justify-content: center; gap: 40px; border-left: 2px dashed #ccc; padding-left: 40px;">`;
-    
-    if (bracketData.center['FINAL'] && bracketData.center['FINAL'].length > 0) {
-        htmlOutput += `
-            <div class="championship-wrapper">
-                <h2 style="text-align: center;">World Cup Final</h2>
-                ${createMatchHTML(bracketData.center['FINAL'][0])}
-            </div>
-        `;
-    }
-    if (bracketData.center['THIRD_PLACE'] && bracketData.center['THIRD_PLACE'].length > 0) {
-        htmlOutput += `
-            <div class="third-place-wrapper">
-                <h3 style="text-align: center;">Third Place Play-off</h3>
-                ${createMatchHTML(bracketData.center['THIRD_PLACE'][0])}
-            </div>
-        `;
-    }
-    htmlOutput += `</div></div>`; // Close finals-section and vertical-bracket-wrapper
-
     container.innerHTML = htmlOutput;
 
-    // ENABLE DESKTOP DRAG-TO-SCROLL (Still works perfectly with the new layout)
+    // ENABLE DESKTOP DRAG-TO-SCROLL
     const slider = document.getElementById('bracket-container');
     if (slider) {
         let isDown = false;
