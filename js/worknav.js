@@ -5,10 +5,10 @@ const navHTML = `
 
         <a href="index.html">Today</a> | 
         <a href="workschedule.html">Full Schedule</a> | 
-        <a href="familystandings.html">Family Standings</a> | 
-        <a href="standings.html">Standings</a> | 
-        <a href="knockoutsched.html">Knockout Round Schedule</a> |
-        <a href="knockoutbracket.html">Knockout Bracket</a> |
+        <a href="workfamilystandings.html">Family Standings</a> | 
+        <a href="workstandings.html">Standings</a> | 
+        <a href="workknockoutsched.html">Knockout Round Schedule</a> |
+        <a href="workknockoutbracket.html">Knockout Bracket</a> |
     </nav>
 `;
 
