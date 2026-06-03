@@ -15,16 +15,16 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getDatabase(app);
 
-// --- 1. DEFINE MATCH NUMBERS FOR LEFT AND RIGHT SIDES ---
-// These are extracted directly from the provided bracket layout spreadsheet
-const leftSideMatchNumbers = [
+// --- 1. DEFINE MATCH NUMBERS FOR TOP AND BOTTOM HALVES ---
+// Swapped from Left/Right arrays to Top/Bottom concept
+const topHalfMatchNumbers = [
     73, 76, 74, 75, 78, 77, 79, 80, // Round of 32
     90, 89, 91, 92,                 // Round of 16
     97, 98,                         // Quarter-finals
     101                             // Semi-final
 ];
 
-const rightSideMatchNumbers = [
+const bottomHalfMatchNumbers = [
     82, 81, 84, 83, 85, 88, 86, 87, // Round of 32
     93, 94, 95, 96,                 // Round of 16
     99, 100,                        // Quarter-finals
@@ -69,9 +69,8 @@ onValue(ref(db), (snapshot) => {
 
     const schedules = data.schedules;
     const results = data.results || {}; 
-    const drafts = data.draft || {}; // Fetch drafts data for family names
+    const drafts = data.draft || {}; 
 
-    // Extract knockout matches
     let matchArray = [];
     Object.keys(schedules).forEach(key => {
         const matchData = schedules[key];
@@ -83,18 +82,18 @@ onValue(ref(db), (snapshot) => {
         }
     });
 
-    // Sort order based on the layout's match numbers instead of matchId
     const getMatchOrder = (matchNum) => {
-        if (leftSideMatchNumbers.includes(matchNum)) return leftSideMatchNumbers.indexOf(matchNum);
-        if (rightSideMatchNumbers.includes(matchNum)) return rightSideMatchNumbers.indexOf(matchNum);
+        if (topHalfMatchNumbers.includes(matchNum)) return topHalfMatchNumbers.indexOf(matchNum);
+        if (bottomHalfMatchNumbers.includes(matchNum)) return bottomHalfMatchNumbers.indexOf(matchNum);
         return 999; 
     };
 
     matchArray.sort((a, b) => getMatchOrder(a.matchNumber) - getMatchOrder(b.matchNumber));
 
+    // Update object keys to "top" and "bottom"
     const bracketData = {
-        left: { 'LAST_32': [], 'LAST_16': [], 'QUARTER_FINALS': [], 'SEMI_FINALS': [] },
-        right: { 'LAST_32': [], 'LAST_16': [], 'QUARTER_FINALS': [], 'SEMI_FINALS': [] },
+        top: { 'LAST_32': [], 'LAST_16': [], 'QUARTER_FINALS': [], 'SEMI_FINALS': [] },
+        bottom: { 'LAST_32': [], 'LAST_16': [], 'QUARTER_FINALS': [], 'SEMI_FINALS': [] },
         center: { 'FINAL': [], 'THIRD_PLACE': [] }
     };
 
@@ -102,24 +101,21 @@ onValue(ref(db), (snapshot) => {
         const stage = match.normalizedStage;
         const matchNum = match.matchNumber;
         
-        // Push based on match number arrays rather than random Firebase IDs
         if (stage === 'FINAL' || stage === 'THIRD_PLACE' || matchNum === 104 || matchNum === 103) {
             bracketData.center[stage].push(match);
-        } else if (leftSideMatchNumbers.includes(matchNum)) {
-            bracketData.left[stage].push(match);
-        } else if (rightSideMatchNumbers.includes(matchNum)) {
-            bracketData.right[stage].push(match);
+        } else if (topHalfMatchNumbers.includes(matchNum)) {
+            bracketData.top[stage].push(match);
+        } else if (bottomHalfMatchNumbers.includes(matchNum)) {
+            bracketData.bottom[stage].push(match);
         } else {
-            // Fallback for edge cases
-            if (bracketData.left[stage].length <= bracketData.right[stage].length) {
-                bracketData.left[stage].push(match);
+            if (bracketData.top[stage].length <= bracketData.bottom[stage].length) {
+                bracketData.top[stage].push(match);
             } else {
-                bracketData.right[stage].push(match);
+                bracketData.bottom[stage].push(match);
             }
         }
     });
 
-    // --- FUNCTION TO GET DRAFTED FAMILY NAME ---
     const getFamilyByName = (teamName) => {
         if (!teamName || teamName === 'TBD') return '';
         for (const famKey in drafts) {
@@ -140,7 +136,7 @@ onValue(ref(db), (snapshot) => {
         const homeScore = matchResult.homeScore ?? '-';
         const awayScore = matchResult.awayScore ?? '-';
 
-        // Add variables for the winner class
+        // Integrate Winner shading logic!
         let homeWinnerClass = '';
         let awayWinnerClass = '';
 
@@ -160,11 +156,9 @@ onValue(ref(db), (snapshot) => {
         const homeFlagHtml = match.homeFlag ? `<img src="${match.homeFlag}" class="bracket-flag" alt="">` : `<div class="bracket-flag-placeholder"></div>`;
         const awayFlagHtml = match.awayFlag ? `<img src="${match.awayFlag}" class="bracket-flag" alt="">` : `<div class="bracket-flag-placeholder"></div>`;
 
-        // Fetch family names
         const homeFamily = getFamilyByName(match.homeTeam);
         const awayFamily = getFamilyByName(match.awayTeam);
 
-        // Format Date & Time
         const matchDateString = match.date || '';
         let datePart = 'TBD';
         let timePart = 'TBD';
@@ -234,21 +228,36 @@ onValue(ref(db), (snapshot) => {
         return colHtml;
     };
 
-    let htmlOutput = `<div class="split-bracket-wrapper">`;
+    // Constructing the new Top/Bottom layout using inline flexbox
+    let htmlOutput = `<div class="vertical-bracket-wrapper" style="display: flex; flex-direction: row; gap: 40px; width: max-content; padding: 20px;">`;
 
-    // LEFT SIDE
-    htmlOutput += `<div class="bracket-side left-side">`;
+    // LEFT SECTION: Contains the Top and Bottom Halves stacked vertically
+    htmlOutput += `<div class="bracket-halves-container" style="display: flex; flex-direction: column; gap: 50px;">`;
+
+    // TOP HALF (Flows left to right: R32 -> R16 -> QF -> SF)
+    htmlOutput += `<div class="bracket-side top-side" style="display: flex; flex-direction: row; gap: 20px;">`;
     ['LAST_32', 'LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS'].forEach(stage => {
-        htmlOutput += createColumnHTML(bracketData.left[stage], stage);
+        htmlOutput += createColumnHTML(bracketData.top[stage], stage);
     });
     htmlOutput += `</div>`;
 
-    // CENTER
-    htmlOutput += `<div class="bracket-center">`;
+    // BOTTOM HALF (Flows left to right: R32 -> R16 -> QF -> SF)
+    htmlOutput += `<div class="bracket-side bottom-side" style="display: flex; flex-direction: row; gap: 20px;">`;
+    ['LAST_32', 'LAST_16', 'QUARTER_FINALS', 'SEMI_FINALS'].forEach(stage => {
+        // Now it builds left to right same as the top half!
+        htmlOutput += createColumnHTML(bracketData.bottom[stage], stage);
+    });
+    htmlOutput += `</div>`;
+    
+    htmlOutput += `</div>`; // Close bracket-halves-container
+
+    // RIGHT SECTION: The Finals and Third Place
+    htmlOutput += `<div class="bracket-center finals-section" style="display: flex; flex-direction: column; justify-content: center; gap: 40px; border-left: 2px dashed #ccc; padding-left: 40px;">`;
+    
     if (bracketData.center['FINAL'] && bracketData.center['FINAL'].length > 0) {
         htmlOutput += `
             <div class="championship-wrapper">
-                <h2>World Cup Final</h2>
+                <h2 style="text-align: center;">World Cup Final</h2>
                 ${createMatchHTML(bracketData.center['FINAL'][0])}
             </div>
         `;
@@ -256,23 +265,16 @@ onValue(ref(db), (snapshot) => {
     if (bracketData.center['THIRD_PLACE'] && bracketData.center['THIRD_PLACE'].length > 0) {
         htmlOutput += `
             <div class="third-place-wrapper">
-                <h3>Third Place Play-off</h3>
+                <h3 style="text-align: center;">Third Place Play-off</h3>
                 ${createMatchHTML(bracketData.center['THIRD_PLACE'][0])}
             </div>
         `;
     }
-    htmlOutput += `</div>`;
-
-    // RIGHT SIDE
-    htmlOutput += `<div class="bracket-side right-side">`;
-    ['SEMI_FINALS', 'QUARTER_FINALS', 'LAST_16', 'LAST_32'].forEach(stage => {
-        htmlOutput += createColumnHTML(bracketData.right[stage], stage);
-    });
-    htmlOutput += `</div></div>`; 
+    htmlOutput += `</div></div>`; // Close finals-section and vertical-bracket-wrapper
 
     container.innerHTML = htmlOutput;
 
-    // ENABLE DESKTOP DRAG-TO-SCROLL
+    // ENABLE DESKTOP DRAG-TO-SCROLL (Still works perfectly with the new layout)
     const slider = document.getElementById('bracket-container');
     if (slider) {
         let isDown = false;
