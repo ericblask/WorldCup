@@ -56,7 +56,7 @@ onValue(ref(db), (snapshot) => {
         return;
     }
 
-const schedules = data.schedules;
+    const schedules = data.schedules;
     const results = data.results || {}; 
 
     // Read the custom data attribute from the container (defaults to 'draft' if missing)
