@@ -437,3 +437,10 @@ summary.date-header:hover {
     border-radius: 3px;
     color: #333;
 }
+
+/* Highlights the winning team inside the split bracket view */
+.bracket-team.winner {
+    background-color: #83D475;
+    padding: 2px 5px;
+    border-radius: 4px;
+}
