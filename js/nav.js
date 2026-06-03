@@ -3,7 +3,7 @@
 const navHTML = `
     <nav class="main-nav">
 
-        <a href="index.html">Today</a> | 
+        <a href="today.html">Today</a> | 
         <a href="schedule.html">Full Schedule</a> | 
         <a href="familystandings.html">Family Standings</a> | 
         <a href="standings.html">Standings</a> | 
