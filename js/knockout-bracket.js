@@ -136,8 +136,26 @@ onValue(ref(db), (snapshot) => {
 
     const createMatchHTML = (match) => {
         const matchResult = results[match.matchId] || {};
+        const status = matchResult.status || 'Scheduled'; // Check if finished
         const homeScore = matchResult.homeScore ?? '-';
         const awayScore = matchResult.awayScore ?? '-';
+
+        // Add variables for the winner class
+        let homeWinnerClass = '';
+        let awayWinnerClass = '';
+
+        if (status === 'Finished') {
+            const hScore = parseInt(homeScore, 10);
+            const aScore = parseInt(awayScore, 10);
+            
+            if (!isNaN(hScore) && !isNaN(aScore)) {
+                if (hScore > aScore) {
+                    homeWinnerClass = 'winner';
+                } else if (aScore > hScore) {
+                    awayWinnerClass = 'winner';
+                }
+            }
+        }
 
         const homeFlagHtml = match.homeFlag ? `<img src="${match.homeFlag}" class="bracket-flag" alt="">` : `<div class="bracket-flag-placeholder"></div>`;
         const awayFlagHtml = match.awayFlag ? `<img src="${match.awayFlag}" class="bracket-flag" alt="">` : `<div class="bracket-flag-placeholder"></div>`;
@@ -181,7 +199,7 @@ onValue(ref(db), (snapshot) => {
                     ${dateTimeDisplay} <br> 
                     <span style="color: #d9534f; font-weight: bold;">(Match #${match.matchNumber || '?'})</span>
                 </div>
-                <div class="bracket-team">
+                <div class="bracket-team ${homeWinnerClass}">
                     <div class="bracket-team-info">
                         ${homeFlagHtml}
                         <div class="bracket-names">
@@ -191,7 +209,7 @@ onValue(ref(db), (snapshot) => {
                     </div>
                     <span class="bracket-score">${homeScore}</span>
                 </div>
-                <div class="bracket-team">
+                <div class="bracket-team ${awayWinnerClass}">
                     <div class="bracket-team-info">
                         ${awayFlagHtml}
                         <div class="bracket-names">
