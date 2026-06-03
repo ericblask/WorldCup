@@ -27,7 +27,12 @@ onValue(ref(db), (snapshot) => {
 
     const schedules = data.schedules;
     const results = data.results || {}; 
-    const drafts = data.draft || {};        // Fetch drafts for family assignments
+
+    // Read the custom data attribute from the container (defaults to 'draft' if missing)
+    const draftNodeName = container.dataset.draftNode || 'draft';
+    
+    // Dynamically fetch either data.draft or data.workdraft based on the HTML
+    const drafts = data[draftNodeName] || {};  
 
     // Helper function to find a family name by the country's string name
     const getFamilyByName = (teamName) => {
