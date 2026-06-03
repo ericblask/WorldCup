@@ -24,7 +24,15 @@ onValue(ref(db), (snapshot) => {
         return;
     }
 
-    const { countries, draft: drafts = {}, standings: statsData = {} } = data;
+    // 1. Read the custom data attribute from the container (defaults to 'draft')
+    const draftNodeName = container.dataset.draftNode || 'draft';
+    
+    // 2. Use the dynamic variable in your destructuring assignment
+    const { 
+        countries, 
+        [draftNodeName]: drafts = {}, 
+        standings: statsData = {} 
+    } = data;
     
     // --- NEW: Helper function to find family by drafted country name ---
     const getFamilyByName = (teamName) => {
