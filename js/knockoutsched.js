@@ -172,8 +172,26 @@ onValue(ref(db), (snapshot) => {
             const status = matchResult.status || 'Scheduled';
             
             let statusClass = '';
-            if (status === 'Finished') statusClass = 'status-finished';
-            else if (status === 'In_Play' || status === 'Paused') statusClass = 'status-live';
+            let homeWinnerClass = ''; 
+            let awayWinnerClass = ''; 
+
+            if (status === 'Finished') {
+                statusClass = 'status-finished';
+                
+                // Determine the winner based on the final score
+                const homeScore = parseInt(matchResult.homeScore, 10);
+                const awayScore = parseInt(matchResult.awayScore, 10);
+                
+                if (!isNaN(homeScore) && !isNaN(awayScore)) {
+                    if (homeScore > awayScore) {
+                        homeWinnerClass = 'winner';
+                    } else if (awayScore > homeScore) {
+                        awayWinnerClass = 'winner';
+                    }
+                }
+            } else if (status === 'In_Play' || status === 'Paused') {
+                statusClass = 'status-live';
+            }
 
             const scoreDisplay = (status === 'Finished' || status === 'In_Play' || status === 'Paused') 
                 ? `<div class="score" style="font-size: 1.2em; font-weight: bold;">${matchResult.homeScore ?? '-'} : ${matchResult.awayScore ?? '-'}</div>` 
@@ -181,7 +199,7 @@ onValue(ref(db), (snapshot) => {
 
             htmlOutput += `
                 <div class="match-row ${statusClass}">
-                    <div class="team-left">
+                    <div class="team-left ${homeWinnerClass}">
                         <span class="team-name">${match.homeTeam}</span>
                         ${match.homeFlag ? `<img src="${match.homeFlag}" alt="${match.homeTeam}" class="team-flag">` : `<div class="team-flag-placeholder"></div>`}
                         <span class="family-name">${getFamilyByName(match.homeTeam)}</span>
@@ -189,7 +207,7 @@ onValue(ref(db), (snapshot) => {
                     <div class="match-info">
                         ${scoreDisplay}
                     </div>
-                    <div class="team-right">
+                    <div class="team-right ${awayWinnerClass}">
                         <span class="team-name">${match.awayTeam}</span>
                         ${match.awayFlag ? `<img src="${match.awayFlag}" alt="${match.awayTeam}" class="team-flag">` : `<div class="team-flag-placeholder"></div>`}
                         <span class="family-name">${getFamilyByName(match.awayTeam)}</span>
